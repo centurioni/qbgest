@@ -1994,12 +1994,20 @@ def Stampa_partitario_singolo(stampa):
     totale=0
     for r in registrazioni:
         saldo=r.importo*segno
+
+        validazione=r.validazione_backref.first()
+        riconciliazioni=r.riconciliazione.filter(Riconciliazione.validazione!=validazione).order_by(Riconciliazione.id).all()
+        for ric in riconciliazioni:
+            if ric.movimento.data_contabile<=data_scadenza:saldo+=ric.movimento.importo*segno
+        totale+=saldo
+
         can.newline()
         can.write(0,r.nome)
         can.write(1,r.data_decorrenza.strftime("%d/%m/%y"))
         can.write(6,r.data_contabile.strftime("%d/%m/%y"))
         can.write(2,r.data_scadenza.strftime("%d/%m/%y"))
         can.write(3,valuta(r.importo*segno))
+        can.write(4,valuta(saldo))
         #can.write(5,r.descrizione[:35])
 
         lines=chunkstring(r.descrizione, 35)
@@ -2008,16 +2016,10 @@ def Stampa_partitario_singolo(stampa):
             can.write(5,lines[i])
 
         #can.write(4,valuta(r.saldo*segno))
-        validazione=r.validazione_backref.first()
-        riconciliazioni=r.riconciliazione.filter(Riconciliazione.validazione!=validazione).order_by(Riconciliazione.id).all()
-        for ric in riconciliazioni:
-            if ric.movimento.data_contabile<=data_scadenza:saldo+=ric.movimento.importo*segno
-        can.write(4,valuta(saldo))
-        totale+=saldo
         for ric in riconciliazioni:
             if ric.movimento.data_contabile<=data_scadenza:
                 can.newline()
-                #can.write(5,ric.validazione.registrazione.descrizione[:38])
+                can.write(5,ric.validazione.registrazione.descrizione[:35])
                 can.write(0,ric.validazione.registrazione.nome)
                 can.write(6,ric.movimento.data_contabile.strftime("%d/%m/%y"))
                 can.write(3,valuta(ric.movimento.importo*segno))
