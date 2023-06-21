@@ -91,14 +91,16 @@
 
     <table border="1">
         <thead>
-            <tr><th>Registrazione</th><th>Importo</th><th>Saldo</th><th>Data contabile</th><th>Azione</th></tr>
+            <tr><th>Registrazione</th><th>Partner</th><th>Descrizione</th><th>Importo</th><th>Saldo</th><th>Data contabile</th><th>Azione</th></tr>
         </thead>
         <tbody>
         {% for r in registrazioni %}
             <tr>
                 <td><a href="{{ url_for('registrazione', id=r.id) }}">{{ r.nome }}</a></td>
-                <td align="right">{{ (r.registro.segno*r.importo)|formatimporto }}</td>
-                <td align="right">{{ (r.registro.segno*r.saldo)|formatimporto }}</td>
+                <td>{{ r.partner.nome }}</td>
+                <td>{{ r.descrizione }}</td>
+                <td align="right">{{ (r.importo*r.registro.segno)|formatimporto }}</td>
+                <td align="right">{{ (r.saldo*r.registro.segno)|formatimporto }}</td>
                 <td align="right">{{ r.data_contabile|formatdate }}</td>
                 <form method="POST" action="{{ url_for('aggiungi_riconciliazione', id=registrazione.id, riconciliazione_id=r.id) }}">
                 <td> <input type="submit" value="Riconcilia"></td>
@@ -108,7 +110,25 @@
         </tbody>
     </table>
     <br>
-    
+
+    <table border="1">
+        <thead>
+            <tr><th>Registo</th><th>Azione</th></tr>
+        </thead>
+        <tbody>
+        {% for r in ricevute %}
+            <tr>
+                <td><a href="{{ url_for('registrazioni', id=r.id) }}">{{ r.nome }}</a></td>
+                <form method="POST" action="{{ url_for('aggiungi_ricevuta', id=registrazione.id, registro_id=r.id) }}">
+                <td> <input type="submit" value="Inserisci"></td>
+                </form>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+
+
     <form action="" method="post" enctype="multipart/form-data">
         {{ upload_form.hidden_tag() }}
 

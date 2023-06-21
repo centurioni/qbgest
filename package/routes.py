@@ -2454,6 +2454,7 @@ def reg_iva(registrazione):#registra la registrazione IVA
 @login_required
 def generico(id):#visualizza o modifica la registrazione generica
     partners = Partner.query.order_by(Partner.nome).with_entities(Partner.nome).all()
+    ricevute = Registro.query.filter(Registro.categoria=="Ricevuta").all()
     registrazione=Registrazione.query.get(id)
     allegati=registrazione.allegato.order_by(Allegato.id).all()
     registrazioni_generate=Registrazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()
@@ -2487,11 +2488,14 @@ def generico(id):#visualizza o modifica la registrazione generica
         riconciliazioni=[]
         for v in voci:
             if v.riconciliazione != None: riconciliazioni.append(v.riconciliazione)
-        registrazioni=Registrazione.query.filter_by(partner=registrazione.partner).filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0).order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()
+        #registrazioni=Registrazione.query.filter_by(partner=registrazione.partner).filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0).order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()
+        filtro="filter_by(partner=registrazione.partner)."
+        if registrazione.partner!=None:filtro="filter(or_(Registrazione.partner==registrazione.partner, Registrazione.domiciliatario==registrazione.partner))."
+        registrazioni=eval("Registrazione.query.filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0)."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
         for r in riconciliazioni: 
             try:registrazioni.remove(r)
             except:pass
-        return render_template('edit_generico.html', registrazione=registrazione, form=form, upload_form=upload_form, partners=partners, voci=voci, registrazioni=registrazioni, dare=dare, avere=avere, allegati=allegati)
+        return render_template('edit_generico.html', registrazione=registrazione, form=form, upload_form=upload_form, partners=partners, ricevute=ricevute, voci=voci, registrazioni=registrazioni, dare=dare, avere=avere, allegati=allegati)
     else:
         movimenti = Movimento.query.join(Conto).join(Sottomastro).join(Mastro).filter(Movimento.registrazione==registrazione).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).order_by(Movimento.id).all()
         dare,avere = 0,0
@@ -2664,10 +2668,7 @@ def cassa(id):#mostra la registrazione di cassa in visualizzazione o in editing
         #registrazioni=Registrazione.query.filter_by(partner=registrazione.partner).filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0).order_by(Registrazione.data_contabile).all()
         filtro="filter_by(partner=registrazione.partner)."
         if registrazione.partner!=None:filtro="filter(or_(Registrazione.partner==registrazione.partner, Registrazione.domiciliatario==registrazione.partner))."
-        #filtro="filter(or_(Registrazione.partner==registrazione.partner, Registrazione.domiciliatario==registrazione.partner))."
-
-        #registrazioni=Registrazione.query.filter(or_(Registrazione.partner==registrazione.partner, Registrazione.domiciliatario==registrazione.partner)).filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0).order_by(Registrazione.data_contabile).all()
-        registrazioni=eval("Registrazione.query.filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0)."+filtro+"order_by(Registrazione.data_contabile).all()")
+        registrazioni=eval("Registrazione.query.filter(Registrazione.validazione_backref != None).filter(Registrazione.saldo != 0)."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
         for r in riconciliazioni: 
             try:registrazioni.remove(r)
             except:pass
