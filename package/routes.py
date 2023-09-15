@@ -2086,7 +2086,7 @@ def Stampa_partitario_insoluti(stampa):
     stampa.ultima_pagina_stampa=can.page
     return can.page
 
-def Stampa_partitario_insoluti_2(stampa):#calcola gli insoluti alla data indicata, ignorando se sono stati saldati dopo
+def Stampa_storico_partitario_insoluti(stampa):#calcola gli insoluti alla data indicata, ignorando se sono stati saldati dopo
     tab=[[40,"l"],[250,"r"],[325,"r"],[400,"r"],[475,"r"],[550,"r"]]
     filename=os.path.join(here, 'stampa.pdf')
     header=stampa.registro_stampa.nome
@@ -2108,10 +2108,11 @@ def Stampa_partitario_insoluti_2(stampa):#calcola gli insoluti alla data indicat
     filtro+="filter(or_("
     for i in range(len(registri)):
         filtro+="Registrazione.registro==registri["+str(i)+"].registro,"
+        print(registri[i].registro)
     filtro=filtro[:-1]
     filtro+="))."
-    filtro+="filter(Registrazione.data_contabile<=DATA)."
-    #if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_decorrenza>=stampa.data_decorrenza)."
+    filtro+="filter(Registrazione.data_scadenza<data_scadenza)."
+    if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_scadenza>=stampa.data_decorrenza)."
     for partner in partners:
         saldo=[0,0,0,0,0]
         for i in range(len(totale)):
@@ -3474,6 +3475,12 @@ def genera_xml_fattura(fattura, filename, progressivo):#genera il file xml della
     etree.SubElement(DatiGeneraliDocumento, "Divisa").text = "EUR"
     etree.SubElement(DatiGeneraliDocumento, "Data").text = fattura.data_decorrenza.strftime("%Y-%m-%d")
     etree.SubElement(DatiGeneraliDocumento, "Numero").text = fattura.nome
+    bollo=False
+    for v in voci_iva:
+        if v.imposta.natura in ["N2.1","N2.2","N3.5","N3.6","N4"]:bollo=True
+    if bollo and totale > 77.47:
+        DatiBollo = etree.SubElement(DatiGeneraliDocumento, "DatiBollo")
+        etree.SubElement(DatiBollo, "BolloVirtuale").text = "SI"
     etree.SubElement(DatiGeneraliDocumento, "ImportoTotaleDocumento").text = str(totale)
     etree.SubElement(DatiGeneraliDocumento, "Causale").text = fattura.descrizione
     if fattura.note!=None:
@@ -3492,6 +3499,8 @@ def genera_xml_fattura(fattura, filename, progressivo):#genera il file xml della
         etree.SubElement(DettaglioLinee[i], "AliquotaIVA").text = str2dec(voci[i].imposta.aliquota)#minimo 4 caratteri con punto
         if voci[i].imposta.natura!=None:etree.SubElement(DettaglioLinee[i], "Natura").text = voci[i].imposta.natura
         #<EsigibilitaIVA>S</EsigibilitaIVA>
+        #AltriDatiGestionali = etree.SubElement(DettaglioLinee[i], "AltriDatiGestionali")
+        #etree.SubElement(AltriDatiGestionali, "TipoDato").text = "NB2"# se chi emette fattura appartiene al terzo settore
 
     DatiRiepilogo=[]
     for i in range(len(voci_iva)):DatiRiepilogo.append(etree.SubElement(DatiBeniServizi, "DatiRiepilogo"))
