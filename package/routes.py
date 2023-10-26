@@ -237,6 +237,7 @@ def modifica_data():
 @login_required
 @requires_roles('admin')
 def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura anno fiscale
+    lock()
     impostazioni=Impostazioni.query.get(1)
     anno=current_user.data.year
     filter_al=datetime.strptime(impostazioni.ultimo_giorno_esercizio+"/"+str(anno-1),"%d/%m/%Y").date()
@@ -329,6 +330,7 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
 
         return redirect(url_for('registrazioni', id=impostazioni.registro_misc.id))
     form.data_delibera.data = current_user.data
+    unlock()
     return render_template('conferma.html', testo="Generare le scritture per la chiusura e la riapertura dei conti per il periodo dal "+filter_dal.strftime("%d/%m/%Y")+" al "+filter_al.strftime("%d/%m/%Y")+" ?", form=form)
 
 @app.route('/conti')
@@ -405,6 +407,7 @@ def registri():#mostra il totale ed il saldo di tutti i registri
 @app.route('/duplica_registrazione/<id>')
 @login_required
 def duplica_registrazione(id):#duplica una registrazione
+    lock()
     nuovaregistrazione=Registrazione.query.get(id)
     db.session.expunge(nuovaregistrazione)
     make_transient(nuovaregistrazione)
@@ -443,11 +446,13 @@ def duplica_registrazione(id):#duplica una registrazione
     db.session.commit()
     #id=Registrazione.query.get(id).registro.id
     #return redirect(url_for('registrazioni', id=id))
+    unlock()
     return redirect(url_for('registrazione', id=nuovaregistrazione.id))
 
 @app.route('/aggiungi_registrazione/<id>')
 @login_required
 def aggiungi_registrazione(id):#aggiunge una registrazione
+    lock()
     registro=Registro.query.get(id)
     registrazione=Registrazione(registro=registro, importo=0, saldo=0, data_contabile=current_user.data)
     if registro.categoria=="Fattura":
@@ -457,6 +462,7 @@ def aggiungi_registrazione(id):#aggiunge una registrazione
     db.session.add(registrazione)
     db.session.commit()
     #return redirect(url_for('registrazioni', id=id))
+    unlock()
     return redirect(url_for('registrazione', id=registrazione.id))
 
 @app.route('/rimuovi_registrazione/<id>', methods=['GET', 'POST'])
@@ -465,9 +471,14 @@ def rimuovi_registrazione(id):#rimuove una registrazione
     registrazione=Registrazione.query.get(id)
     form = ConfermaForm()
     if form.validate_on_submit():
+        lock()
         id=registrazione.registro.id
         db.session.delete(registrazione)
+        datalog="Rimossa registrazione "+str(registrazione.id)
+        log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
+        db.session.add(log)
         db.session.commit()
+        unlock()
         return redirect(url_for('registrazioni', id=id))
     form.data_delibera.data = current_user.data
     testo=registrazione.descrizione
@@ -477,6 +488,7 @@ def rimuovi_registrazione(id):#rimuove una registrazione
 @app.route('/annulla_registrazione/<id>')
 @login_required
 def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, dipende dai casi) tutte le registrazioni che dipendono da questa
+    lock()
     registrazione=Registrazione.query.get(id)
     RDA=[registrazione]
     TRDA=None
@@ -503,7 +515,7 @@ def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, d
             text+=" "+reg.nome
             if reg.partner!=None:partner_nome=reg.partner.nome
             else:partner_nome=""
-            datalog="Annullata registrazione ["+reg.nome+"] importo["+str(reg.importo)+"] partner["+partner_nome+"] data contabile["+format_date(reg.data_contabile)+"] data registrazione["+format_date(reg.data_decorrenza)+"] data scadenza["+format_date(reg.data_scadenza)+"]"
+            datalog="Annullata registrazione "+str(reg.id)+" ["+reg.nome+"] importo["+str(reg.importo)+"] partner["+partner_nome+"] data contabile["+format_date(reg.data_contabile)+"] data registrazione["+format_date(reg.data_decorrenza)+"] data scadenza["+format_date(reg.data_scadenza)+"]"
             log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
             db.session.add(log)
             reg.numero=None
@@ -517,6 +529,7 @@ def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, d
     db.session.commit()
     saldo(reg_saldo)
     flash("Sono state annullate le registrazioni "+text)
+    unlock()
     return redirect(url_for('registrazione', id=id))
 
 @app.route('/registrazioni/<id>', methods=['GET', 'POST'])
@@ -769,6 +782,7 @@ def aggiungi_voce(id):#aggiunge una voce ad una registrazione
 @app.route('/aggiungi_riconciliazione/<id>', methods=['GET', 'POST'])
 @login_required
 def aggiungi_riconciliazione(id):# nella registrazione di tipo cassa o generico aggiunge le voci per riconciliare con altre registrazioni
+    lock()
     impostazioni=Impostazioni.query.get(1)
     riconciliazione_id = request.args.get('riconciliazione_id')
     riconciliazione=Registrazione.query.get(riconciliazione_id)
@@ -792,6 +806,7 @@ def aggiungi_riconciliazione(id):# nella registrazione di tipo cassa o generico 
     voce=Voce(registrazione=registrazione, descrizione=riconciliazione.descrizione, conto=conto, partner=riconciliazione.partner, importo=-riconciliazione.saldo, riconciliazione=riconciliazione)
     db.session.add(voce)
     db.session.commit()
+    unlock()
     return redirect(url_for('registrazione', id=id))
 
 @app.route('/download_file/<id>')
@@ -2390,9 +2405,11 @@ def voce_iva(id):#modifica la voce della liquidazione IVA
 @app.route('/registra_iva/<id>', methods=['GET', 'POST'])
 @login_required
 def registra_iva(id):#registra la registrazione liquidazione IVA
+    lock()
     registrazione=Registrazione.query.get(id)
     if registrazione.validazione_backref.first() == None:
         reg_iva(registrazione)
+    unlock()
     return redirect(url_for('iva', id=id))
 
 @app.route('/aggiungi_riconciliazione_iva/<id>', methods=['GET', 'POST'])
@@ -2440,7 +2457,7 @@ def reg_iva(registrazione):#registra la registrazione IVA
 
     if registrazione.partner!=None:partner_nome=registrazione.partner.nome
     else:partner_nome=""
-    datalog="Validata registrazione ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+partner_nome+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
+    datalog="Validata registrazione "+str(registrazione.id)+" ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+partner_nome+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
     log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
     db.session.add(log)
     db.session.commit()
@@ -2540,6 +2557,7 @@ def voce_generico(id):#modifica la voce della registrazione generica
 @app.route('/registra_generico/<id>', methods=['GET', 'POST'])
 @login_required
 def registra_generico(id):#registra la registrazione generica
+    lock()
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
@@ -2581,6 +2599,7 @@ def registra_generico(id):#registra la registrazione generica
                     vo.descrizione="Transito RA"
                     ritenuta_acconto.validazione=registrazione.validazione_backref.first()
                     reg_fattura(ritenuta_acconto)
+    unlock()
     return redirect(url_for('generico', id=id))
 
 def reg_generico(registrazione):#registra la registrazione generica
@@ -2607,7 +2626,7 @@ def reg_generico(registrazione):#registra la registrazione generica
                 reg_saldo.append(v.riconciliazione)
     if registrazione.partner!=None:partner_nome=registrazione.partner.nome
     else:partner_nome=""
-    datalog="Validata registrazione ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+partner_nome+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
+    datalog="Validata registrazione "+str(registrazione.id)+" ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+partner_nome+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
     log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
     db.session.add(log)
     db.session.commit()
@@ -2717,6 +2736,7 @@ def voce_cassa(id):#edita la voce di cassa
 @app.route('/registra_cassa/<id>')
 @login_required
 def registra_cassa(id):#registra la registrazione tipo cassa e genera le registrazioni accessorie
+    lock()
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
@@ -2758,6 +2778,7 @@ def registra_cassa(id):#registra la registrazione tipo cassa e genera le registr
                     vo.descrizione="Transito RA"
                     ritenuta_acconto.validazione=registrazione.validazione_backref.first()
                     reg_fattura(ritenuta_acconto)
+    unlock()
     return redirect(url_for('registrazioni', id=registrazione.registro.id))
 
 def reg_cassa(registrazione):#registra la registrazione tipo cassa
@@ -2781,7 +2802,7 @@ def reg_cassa(registrazione):#registra la registrazione tipo cassa
             riconciliazione=Riconciliazione(validazione=validazione, registrazione=v.riconciliazione, movimento=movimento)
             db.session.add(riconciliazione)
             reg_saldo.append(v.riconciliazione)
-    datalog="Validata registrazione ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+nome(registrazione.partner)+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
+    datalog="Validata registrazione "+str(registrazione.id)+" ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+nome(registrazione.partner)+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
     log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
     db.session.add(log)
     db.session.commit()
@@ -2866,9 +2887,11 @@ def voce_ricevuta(id):#modifica la voce della ricevuta
 @app.route('/registra_ricevuta/<id>')
 @login_required#registra la ricevuta
 def registra_ricevuta(id):
+    lock()
     registrazione=Registrazione.query.get(id)
     if registrazione.validazione_backref.first() == None:
         reg_ricevuta(registrazione)
+    unlock()
     return redirect(url_for('ricevuta', id=id))
 
 @app.route('/aggiungi_ricevuta/<id>', methods=['GET', 'POST'])
@@ -3009,6 +3032,7 @@ def voce_fattura(id):#edita la voce fattura
 @app.route('/registra_fattura/<id>', methods=['GET', 'POST'])
 @login_required
 def registra_fattura(id):#registra la fattura e genera le registrazioni accessorie
+    lock()
     registrazione=Registrazione.query.get(id)
     impostazioni=Impostazioni.query.get(1)
     if not validate_fattura(registrazione):
@@ -3129,6 +3153,7 @@ def registra_fattura(id):#registra la fattura e genera le registrazioni accessor
             if registrazione.partner.amministratore!=None: registrazione.domiciliatario=registrazione.partner.amministratore
             if registrazione.letturista: registrazione.domiciliatario=registrazione.partner.letturista
         db.session.commit()
+    unlock()
     return redirect(url_for('fattura', id=id))
 
 @app.route('/edit_top_fattura/<id>', methods=['GET', 'POST'])
@@ -4302,7 +4327,7 @@ def reg_ricevuta(registrazione):#registra la ricevuta
     for v in voci:
         movimento=Movimento(descrizione=v.descrizione, data_contabile=registrazione.data_contabile, importo=dec(-v.importo*v.quantita*registrazione.registro.segno), conto=v.conto, registrazione=registrazione, validazione=validazione)
         db.session.add(movimento)
-    datalog="Validata registrazione ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+nome(registrazione.partner)+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
+    datalog="Validata registrazione "+str(registrazione.id)+" ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+nome(registrazione.partner)+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
     log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
     db.session.add(log)
     db.session.commit()
@@ -4369,7 +4394,7 @@ def reg_fattura(registrazione):#registra la fattura
             else: conto=registrazione.registro.conto_iva
             movimento=Movimento(descrizione=voce_iva.imposta.nome, data_contabile=registrazione.data_contabile, importo=-voce_iva.iva*registrazione.registro.segno, conto=conto, registrazione=registrazione, validazione=validazione)
             db.session.add(movimento)
-    datalog="Validata registrazione ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+nome(registrazione.partner)+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
+    datalog="Validata registrazione "+str(registrazione.id)+" ["+registrazione.nome+"] importo["+str(registrazione.importo)+"] partner["+nome(registrazione.partner)+"] data contabile["+format_date(registrazione.data_contabile)+"] data registrazione["+format_date(registrazione.data_decorrenza)+"] data scadenza["+format_date(registrazione.data_scadenza)+"]"
     log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
     db.session.add(log)
     db.session.commit()
@@ -4479,6 +4504,7 @@ def invia_fattura_sdi(id):#invia la fattura elettronica all'SDI tramite PEC
 @app.route('/invia_fattura_sdi_/<id>', methods=['GET', 'POST'])
 @login_required
 def invia_fattura_sdi_(id):#invia la fattura elettronica all'SDI tramite PEC
+    lock()
     impostazioni=Impostazioni.query.get(1)
     app.config['MAIL_SERVER']=impostazioni.smtp_server
     app.config['MAIL_USERNAME']=impostazioni.smtp_user
@@ -4494,6 +4520,7 @@ def invia_fattura_sdi_(id):#invia la fattura elettronica all'SDI tramite PEC
         allegato.sdi.sent=True
         allegato.sdi.timestamp=func.now()
         db.session.commit()
+    unlock()
     return redirect(url_for('fattura', id=id))
 
 @app.route('/rimuovi_record_sdi/<id>', methods=['GET', 'POST'])
