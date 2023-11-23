@@ -2007,13 +2007,17 @@ def Stampa_partitario_singolo(stampa):
     #totale = (eval("db.session.query(func.sum(Registrazione.importo))."+filtro+"scalar()") or 0)*segno
     #saldo = (eval("db.session.query(func.sum(Registrazione.saldo))."+filtro+"scalar()") or 0)*segno
     totale=0
+    REG=[]
     for r in registrazioni:
+        if r not in REG:REG.append(r)
         saldo=r.importo*segno
 
         validazione=r.validazione_backref.first()
         riconciliazioni=r.riconciliazione.filter(Riconciliazione.validazione!=validazione).order_by(Riconciliazione.id).all()
         for ric in riconciliazioni:
-            if ric.movimento.data_contabile<=data_scadenza:saldo+=ric.movimento.importo*segno
+            if ric.movimento.data_contabile<=data_scadenza:
+                saldo+=ric.movimento.importo*segno
+                if ric.validazione.registrazione not in REG:REG.append(ric.validazione.registrazione)
         totale+=saldo
 
         can.newline()
@@ -2040,10 +2044,48 @@ def Stampa_partitario_singolo(stampa):
                 can.write(3,valuta(ric.movimento.importo*segno))
         can.newline()
     can.newline()
-    can.newline()
     can.writebold(0,"Totale")
     #can.write(3,valuta(totale))
     can.writebold(4,valuta(totale))
+
+
+    can.newline()
+    can.newline()
+    can.newline()
+    can.writebold(0,"Elenco documenti")
+    can.newline()
+    totale=0
+    # registri = Registro.query.filter(or_(Registro.categoria=="Cassa",Registro.categoria=="Fattura")).all()
+    # filtro="filter(Registrazione.partner==stampa.partner)."
+    # filtro+="filter(or_("
+    # for i in range(len(registri)):
+        # filtro+="Registrazione.registro==registri["+str(i)+"],"
+    # filtro=filtro[:-1]
+    # filtro+="))."
+    # if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_contabile>=stampa.data_decorrenza)."
+    # filtro+="filter(Registrazione.data_contabile<=data_scadenza)."
+    # filtro+="filter(Registrazione.numero!=None)."
+    # registrazioni = eval("Registrazione.query."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
+    # for r in registrazioni:
+    for r in REG:
+        if r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura":
+            can.newline()
+            can.write(0,r.nome)
+            if r.data_decorrenza!=None:can.write(1,r.data_decorrenza.strftime("%d/%m/%y"))
+            can.write(6,r.data_contabile.strftime("%d/%m/%y"))
+            if r.data_scadenza!=None:can.write(2,r.data_scadenza.strftime("%d/%m/%y"))
+            segno=1
+            if r.registro.categoria=="Cassa":segno=segno*-1
+            can.write(3,valuta(r.importo*segno))
+            totale+=r.importo*segno
+            lines=chunkstring(r.descrizione, 35)
+            for i in range(len(lines)):
+                if i!=0:can.newline()
+                can.write(5,lines[i])
+    can.newline()
+    can.newline()
+    can.writebold(0,"Totale")
+    can.writebold(3,valuta(totale))
     can.save()
     stampa.ultima_pagina_stampa=can.page
     return can.page
