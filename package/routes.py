@@ -2068,7 +2068,7 @@ def Stampa_partitario_singolo(stampa):
     # registrazioni = eval("Registrazione.query."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
     # for r in registrazioni:
     for r in REG:
-        if (r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura") and r.partner==partner:
+        if (r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura") and r.partner==stampa.partner:
             can.newline()
             can.write(0,r.nome)
             if r.data_decorrenza!=None:can.write(1,r.data_decorrenza.strftime("%d/%m/%y"))
