@@ -2068,7 +2068,7 @@ def Stampa_partitario_singolo(stampa):
     # registrazioni = eval("Registrazione.query."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
     # for r in registrazioni:
     for r in REG:
-        if r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura":
+        if (r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura") and r.partner==partner:
             can.newline()
             can.write(0,r.nome)
             if r.data_decorrenza!=None:can.write(1,r.data_decorrenza.strftime("%d/%m/%y"))
@@ -2084,8 +2084,8 @@ def Stampa_partitario_singolo(stampa):
                 can.write(5,lines[i])
     can.newline()
     can.newline()
-    can.writebold(0,"Totale")
-    can.writebold(3,valuta(totale))
+    #can.writebold(0,"Totale")
+    #can.writebold(3,valuta(totale))
     can.save()
     stampa.ultima_pagina_stampa=can.page
     return can.page
