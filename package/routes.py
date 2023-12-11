@@ -2095,8 +2095,9 @@ def Stampa_partitario_insoluti(stampa):
     filename=os.path.join(here, 'stampa.pdf')
     header=stampa.registro_stampa.nome+" INSOLUTI"
     #if stampa.data_decorrenza!=None:header+=" dal "+stampa.data_decorrenza.strftime("%d/%m/%y")
-    if stampa.data_scadenza!=None:data_scadenza=stampa.data_scadenza
-    else:data_scadenza=current_user.data
+    #if stampa.data_scadenza!=None:data_scadenza=stampa.data_scadenza
+    #else:data_scadenza=current_user.data
+    data_scadenza=current_user.data
     header+=" al "+data_scadenza.strftime("%d/%m/%y")
     header+=" stampato il "+datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     azienda=Impostazioni.query.get(1).azienda
