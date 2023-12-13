@@ -2095,10 +2095,9 @@ def Stampa_partitario_insoluti(stampa):
     filename=os.path.join(here, 'stampa.pdf')
     header=stampa.registro_stampa.nome+" INSOLUTI"
     #if stampa.data_decorrenza!=None:header+=" dal "+stampa.data_decorrenza.strftime("%d/%m/%y")
-    #if stampa.data_scadenza!=None:data_scadenza=stampa.data_scadenza
-    #else:data_scadenza=current_user.data
-    data_scadenza=current_user.data
-    header+=" al "+data_scadenza.strftime("%d/%m/%y")
+    if stampa.data_scadenza!=None:data_scadenza=stampa.data_scadenza
+    else:data_scadenza=current_user.data
+    header+=" al "+datetime.now().strftime("%d/%m/%y")
     header+=" stampato il "+datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     azienda=Impostazioni.query.get(1).azienda
     footer=azienda.nome+" - "+azienda.indirizzo+" - "+azienda.cap+" "+azienda.citta+" - P.IVA "+azienda.iva+" - CF "+azienda.cf
@@ -2170,7 +2169,7 @@ def Stampa_storico_partitario_insoluti(stampa):#calcola gli insoluti alla data i
     filtro=filtro[:-1]
     filtro+="))."
     filtro+="filter(Registrazione.data_scadenza<data_scadenza)."
-    if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_scadenza>=stampa.data_decorrenza)."
+    #if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_scadenza>=stampa.data_decorrenza)."
     for partner in partners:
         saldo=[0,0,0,0,0]
         for i in range(len(totale)):
@@ -2202,7 +2201,7 @@ def Stampa_storico_partitario_insoluti(stampa):#calcola gli insoluti alla data i
     stampa.ultima_pagina_stampa=can.page
     return can.page
 
-def Stampa_partitario(stampa):
+def Stampa_partitario_originale(stampa):
     tab=[[40,"l"],[550,"r"]]
     filename=os.path.join(here, 'stampa.pdf')
     header=stampa.registro_stampa.nome
@@ -2246,6 +2245,65 @@ def Stampa_partitario(stampa):
     can.newline()
     can.write(0,"Totale")
     can.write(1,valuta(totale))
+    can.save()
+    stampa.ultima_pagina_stampa=can.page
+    return can.page
+
+def Stampa_partitario(stampa):
+    tab=[[40,"l"],[400,"r"],[550,"r"]]
+    filename=os.path.join(here, 'stampa.pdf')
+    header=stampa.registro_stampa.nome
+    #if stampa.data_decorrenza!=None:header+=" dal "+stampa.data_decorrenza.strftime("%d/%m/%y")
+    if stampa.data_scadenza!=None:data_scadenza=stampa.data_scadenza
+    else:data_scadenza=current_user.data
+    header+=" al "+data_scadenza.strftime("%d/%m/%y")
+    header+=" stampato il "+datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    azienda=Impostazioni.query.get(1).azienda
+    footer=azienda.nome+" - "+azienda.indirizzo+" - "+azienda.cap+" "+azienda.citta+" - P.IVA "+azienda.iva+" - CF "+azienda.cf
+    des=["Partner","Insoluti","Totale"]
+    can=document2(filename, pagesize=A4, page=1, year="", tab=tab, des=des, header=header, footer=footer)
+    registri=stampa.registro_stampa.filtro_registro.all()
+    partners = Partner.query.order_by(Partner.nome).all()
+    totale=[0,0,0,0,0]
+    segno=1
+    if registri[0].registro.conto.sottomastro.mastro.tipo=="Passività": segno=segno*-1
+    filtro="filter(Registrazione.partner==partner)."
+    filtro+="filter(or_("
+    for i in range(len(registri)):
+        filtro+="Registrazione.registro==registri["+str(i)+"].registro,"
+    filtro=filtro[:-1]
+    filtro+="))."
+    #filtro+="filter(Registrazione.data_contabile<=data_scadenza)."
+    #if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_decorrenza>=stampa.data_decorrenza)."
+    totale=0
+    totaleins=0
+    for partner in partners:
+        saldo=0
+        insoluti=0
+        registrazioni = eval("Registrazione.query.filter(Registrazione.data_contabile<=data_scadenza)."+filtro+"all()")
+        for r in registrazioni:
+            riconciliazioni=r.riconciliazione.all()
+            for ric in riconciliazioni:
+                    if ric.movimento.data_contabile<=data_scadenza:
+                        saldo+=ric.movimento.importo*segno
+        registrazioni = eval("Registrazione.query.filter(Registrazione.data_scadenza<data_scadenza)."+filtro+"all()")
+        for r in registrazioni:
+            riconciliazioni=r.riconciliazione.all()
+            for ric in riconciliazioni:
+                    if ric.movimento.data_contabile<=data_scadenza:
+                        insoluti+=ric.movimento.importo*segno
+        if saldo!=0 or insoluti!=0:
+            can.newline()
+            can.write(0,partner.nome[:80])
+            can.write(1,valuta(insoluti))
+            can.write(2,valuta(saldo))
+            totale+=saldo
+            totaleins+=insoluti
+    can.newline()
+    can.newline()
+    can.write(0,"Totale")
+    can.write(1,valuta(totaleins))
+    can.write(2,valuta(totale))
     can.save()
     stampa.ultima_pagina_stampa=can.page
     return can.page
