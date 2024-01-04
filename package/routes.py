@@ -2010,9 +2010,10 @@ def Stampa_partitario_singolo(stampa):
     REG=[]
     for r in registrazioni:
         if r not in REG:REG.append(r)
+        if r.validazione!=None:REG.append(r.validazione.registrazione)#nel caso delle ricevute inserisco le registrazioni che le hanno generate, in genere sono bonifici
         saldo=r.importo*segno
 
-        validazione=r.validazione_backref.first()
+        validazione=r.validazione_backref.first()#validazione generata dalla registrazione r
         riconciliazioni=r.riconciliazione.filter(Riconciliazione.validazione!=validazione).order_by(Riconciliazione.id).all()
         for ric in riconciliazioni:
             if ric.movimento.data_contabile<=data_scadenza:
@@ -2068,7 +2069,7 @@ def Stampa_partitario_singolo(stampa):
     # registrazioni = eval("Registrazione.query."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
     # for r in registrazioni:
     for r in REG:
-        if (r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura") and r.partner==stampa.partner:
+        if (r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura" or r.registro.categoria=="Ricevuta") and r.partner==stampa.partner:
             can.newline()
             can.write(0,r.nome)
             if r.data_decorrenza!=None:can.write(1,r.data_decorrenza.strftime("%d/%m/%y"))
