@@ -226,7 +226,7 @@ class Registrazione(db.Model):
     registro_id = db.Column(db.Integer, db.ForeignKey('registro.id'))
     partner_id = db.Column(db.Integer, db.ForeignKey('partner.id'))
     domiciliatario_id = db.Column(db.Integer, db.ForeignKey('partner.id'))
-    validazione_id = db.Column(db.Integer, db.ForeignKey('validazione.id'))#questo in realta' se esiste e' la registrazione che ha originato questa, il nome migliore sarebbe origine
+    validazione_id = db.Column(db.Integer, db.ForeignKey('validazione.id'))#questo se esiste e' la validazione della registrazione che ha originato questa
     pagamento_id = db.Column(db.Integer, db.ForeignKey('pagamento.id'))
     tipo_documento_id = db.Column(db.Integer, db.ForeignKey('tipo_documento.id'))
     movimento = db.relationship('Movimento', backref='registrazione', lazy='dynamic', cascade = "all, delete, delete-orphan")#se viene cancellata la registrazione allora anche tutti i movimenti che puntano a questo vengono cancellati

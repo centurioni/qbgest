@@ -235,15 +235,15 @@ def modifica_data():
 
 @app.route('/chiusura_apertura', methods=['GET', 'POST'])
 @login_required
-@requires_roles('admin')
+#@requires_roles('admin')
 def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura anno fiscale
-    lock()
     impostazioni=Impostazioni.query.get(1)
     anno=current_user.data.year
     filter_al=datetime.strptime(impostazioni.ultimo_giorno_esercizio+"/"+str(anno-1),"%d/%m/%Y").date()
     filter_dal=filter_al+relativedelta(days=1)-relativedelta(years=1)
     form = ConfermaForm()
     if form.validate_on_submit():
+        lock()
         #filter_dal = current_user.dal
         #filter_al = current_user.al
         registrazione=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura conto economico")
@@ -327,10 +327,9 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
         reg_generico(apertura_passivita)
         impostazioni.starting_date=filter_al+relativedelta(days=1)
         db.session.commit()
-
+        unlock()
         return redirect(url_for('registrazioni', id=impostazioni.registro_misc.id))
     form.data_delibera.data = current_user.data
-    unlock()
     return render_template('conferma.html', testo="Generare le scritture per la chiusura e la riapertura dei conti per il periodo dal "+filter_dal.strftime("%d/%m/%Y")+" al "+filter_al.strftime("%d/%m/%Y")+" ?", form=form)
 
 @app.route('/conti')
@@ -493,17 +492,19 @@ def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, d
     RDA=[registrazione]
     TRDA=None
     reg_saldo=[]
-    while RDA != TRDA:#cerca tutte le registrazioni coinvolte nell'annullamento della prima e quelle per quale occore ricalcolare il saldo
+    #cerca tutte le registrazioni coinvolte nell'annullamento della prima e quelle per quale occore ricalcolare il saldo
+    #popolando dinamicamente la lista delle registrazioni da annullare RDA fino a quando non satura
+    while RDA != TRDA:
         TRDA=RDA[:]
         for registrazione in TRDA:
-            riconciliazioni=Riconciliazione.query.filter_by(registrazione=registrazione).all()
+            riconciliazioni=Riconciliazione.query.filter_by(registrazione=registrazione).all()#riconciliazioni che dipendono dalle registrazioni da annullare
             for r in riconciliazioni:
                 reg=r.validazione.registrazione
                 if reg not in RDA: RDA.append(reg)
-            registrazioni=Registrazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()
+            registrazioni=Registrazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()#registrazioni che dipendono dalle validazione delle registrazioni da annullare
             for reg in registrazioni:
                 if reg not in RDA: RDA.append(reg)
-            riconciliazioni=Riconciliazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()
+            riconciliazioni=Riconciliazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()#riconciliazioni che dipendono dalle validazioni delle registrazioni da annullare
             for r in riconciliazioni:
                 if r.registrazione not in reg_saldo: reg_saldo.append(r.registrazione)
     #print("Registrazioni da annullare")
@@ -521,7 +522,7 @@ def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, d
             reg.numero=None
             reg.nome=None
             validazione=reg.validazione_backref.first()
-            if validazione != None: db.session.delete(validazione)
+            if validazione != None: db.session.delete(validazione)# per come è definito il database (models.py) cancellando la validazione si cancellano in automatico le registrazioni, le riconciliazioni e i movimenti che dipendono da questa
             #db.session.delete(validazione)
     #print("Registrazioni dove ricalcolare il saldo")
     #for r in reg_saldo:
@@ -838,7 +839,7 @@ def partner(id):#visualizza il partner
     filtro_form=FiltroForm()
     del filtro_form.partner
     del filtro_form.bozze
-    print(filtro_form.submit_filtro.data)
+    #print(filtro_form.submit_filtro.data)
     if filtro_form.submit_filtro.data and filtro_form.validate():
         current_user.dal=filtro_form.dal.data
         current_user.al=filtro_form.al.data
@@ -1087,7 +1088,7 @@ def stampa_liquidazione_iva(id):
     registro_liq_iva=stampa.registro_stampa.filtro_registro.first().registro
     #registrazioni=Registrazione.query.filter(Registrazione.numero!=None).filter(Registrazione.registro==registro_liq_iva).all()
     registrazioni=Registrazione.query.outerjoin(Filtro_registrazione).filter(Registrazione.registro_id==15).filter(Filtro_registrazione.stampa_id==None).all()
-    print(allegati)
+    #print(allegati)
     return render_template('stampa_liquidazione_iva.html', form=form, stampa=stampa, allegati=allegati, registrazioni=registrazioni)
 
 @app.route('/stampa_registro_iva/<id>', methods=['GET', 'POST'])
@@ -2166,7 +2167,7 @@ def Stampa_storico_partitario_insoluti(stampa):#calcola gli insoluti alla data i
     filtro+="filter(or_("
     for i in range(len(registri)):
         filtro+="Registrazione.registro==registri["+str(i)+"].registro,"
-        print(registri[i].registro)
+        #print(registri[i].registro)
     filtro=filtro[:-1]
     filtro+="))."
     filtro+="filter(Registrazione.data_scadenza<data_scadenza)."
@@ -2663,6 +2664,7 @@ def registra_generico(id):#registra la registrazione generica
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
+        unlock()
         return redirect(url_for('generico', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_generico(registrazione)
@@ -2842,6 +2844,7 @@ def registra_cassa(id):#registra la registrazione tipo cassa e genera le registr
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
+        unlock()
         return redirect(url_for('cassa', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_cassa(registrazione)
@@ -3088,7 +3091,7 @@ def cambia_conto(id):#modifica il conto per le voce della fattura
     form = CambiaContoForm()
     if form.validate_on_submit():
         voce.conto=Conto.query.filter_by(nome=form.conto.data).first()
-        print(-voce.importo*voce.registrazione.registro.segno*voce.quantita,type(-voce.importo*voce.registrazione.registro.segno*voce.quantita))
+        #print(-voce.importo*voce.registrazione.registro.segno*voce.quantita,type(-voce.importo*voce.registrazione.registro.segno*voce.quantita))
         movimento=Movimento.query.filter_by(registrazione=voce.registrazione).filter_by(importo=-voce.importo*voce.registrazione.registro.segno*voce.quantita).first()
         movimento.conto=voce.conto
         db.session.commit()
@@ -3139,6 +3142,7 @@ def registra_fattura(id):#registra la fattura e genera le registrazioni accessor
     impostazioni=Impostazioni.query.get(1)
     if not validate_fattura(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
+        unlock()
         return redirect(url_for('fattura', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_fattura(registrazione)
@@ -4127,7 +4131,7 @@ def impostazioni_generali():
         impostazioni.pec_sdi=form.pec_sdi.data
         impostazioni.sequenziale_sdi=form.sequenziale_sdi.data
         impostazioni.ultimo_giorno_esercizio=form.ultimo_giorno_esercizio.data
-        print(type(form.starting_date.data),form.starting_date.data)
+        #print(type(form.starting_date.data),form.starting_date.data)
         db.session.commit()
         flash('I dati sono stati salvati !')
         return redirect(url_for('impostazioni_generali'))
@@ -4150,8 +4154,8 @@ def impostazioni_generali():
         if impostazioni.conto_lav_autonomo!=None:form.conto_lav_autonomo.data=impostazioni.conto_lav_autonomo.nome
         form.starting_date.data=impostazioni.starting_date
 
-        print(type(form.starting_date.data),form.starting_date.data)
-        print(type(impostazioni.starting_date),impostazioni.starting_date)
+        #print(type(form.starting_date.data),form.starting_date.data)
+        #print(type(impostazioni.starting_date),impostazioni.starting_date)
 
 
         form.imap_server.data=impostazioni.imap_server
@@ -4170,10 +4174,12 @@ def impostazioni_generali():
 
 # C O M M O N #########################################################################
 def lock():
+    #print("lock")
     while LOCK[0]:time.sleep(0.1)
     LOCK[0]=True
 
 def unlock():
+    #print("unlock")
     LOCK[0]=False
 
 def daterange(date1, date2):
@@ -4194,7 +4200,7 @@ def saldo(registrazioni):
             for ric in riconciliazioni:
                 saldo+=ric.movimento.importo
             r.saldo=saldo
-            print (r.nome,r.saldo)
+            #print (r.nome,r.saldo)
     db.session.commit()
 
 def valuta(value):
@@ -4655,7 +4661,7 @@ def importa_fattura_sdi_(id):#importa la fattura elettronica dal record sdi
             if a.nome[-3:].lower()=="xml" and len(a.nome)>12 and not "_" in a.nome[-9:]:break
 
         nome=a.nome
-        print(nome)
+        #print(nome)
         filename=os.path.join(here,nome)
         
         f = open(filename, 'wb')
@@ -4928,7 +4934,7 @@ def check_sdi_():#scarica email da PEC e popola i records sdi
     (retcode, messages) = imap.search(None, '(UNSEEN)')
     if retcode == 'OK':
         for num in messages[0].split() :
-            print ('Processing ')
+            #print ('Processing ')
             n=n+1
             res, msg = imap.fetch(num,'(RFC822)')
             for response in msg:
@@ -4937,7 +4943,7 @@ def check_sdi_():#scarica email da PEC e popola i records sdi
                     subject = decode_header(msg["Subject"])[0][0]
                     if isinstance(subject, bytes):
                         subject = subject.decode()
-                    print("Subject:", subject)
+                    #print("Subject:", subject)
                     data = decode_header(msg["Date"])[0][0]
                     sdi=Sdi(nome=subject, timestamp=email.utils.parsedate_to_datetime(data), inbox=True)
                     db.session.add(sdi)
