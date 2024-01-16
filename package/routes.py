@@ -484,54 +484,63 @@ def rimuovi_registrazione(id):#rimuove una registrazione
     if testo==None:testo="None"
     return render_template('conferma.html', testo="Rimozione della registrazione "+testo, form=form)
 
-@app.route('/annulla_registrazione/<id>')
+@app.route('/annulla_registrazione/<id>', methods=['GET', 'POST'])
 @login_required
 def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, dipende dai casi) tutte le registrazioni che dipendono da questa
-    lock()
     registrazione=Registrazione.query.get(id)
-    RDA=[registrazione]
-    TRDA=None
-    reg_saldo=[]
-    #cerca tutte le registrazioni coinvolte nell'annullamento della prima e quelle per quale occore ricalcolare il saldo
-    #popolando dinamicamente la lista delle registrazioni da annullare RDA fino a quando non satura
-    while RDA != TRDA:
-        TRDA=RDA[:]
-        for registrazione in TRDA:
-            riconciliazioni=Riconciliazione.query.filter_by(registrazione=registrazione).all()#riconciliazioni che dipendono dalle registrazioni da annullare
-            for r in riconciliazioni:
-                reg=r.validazione.registrazione
-                if reg not in RDA: RDA.append(reg)
-            registrazioni=Registrazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()#registrazioni che dipendono dalle validazione delle registrazioni da annullare
-            for reg in registrazioni:
-                if reg not in RDA: RDA.append(reg)
-            riconciliazioni=Riconciliazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()#riconciliazioni che dipendono dalle validazioni delle registrazioni da annullare
-            for r in riconciliazioni:
-                if r.registrazione not in reg_saldo: reg_saldo.append(r.registrazione)
-    #print("Registrazioni da annullare")
-    #for reg in RDA:
-    #    print(reg.nome)
-    text=""
-    for reg in RDA:#ho trovato le registrazioni da annullare, quindi le annullo
-        if reg != None:
-            text+=" "+reg.nome
-            if reg.partner!=None:partner_nome=reg.partner.nome
-            else:partner_nome=""
-            datalog="Annullata registrazione "+str(reg.id)+" ["+reg.nome+"] importo["+str(reg.importo)+"] partner["+partner_nome+"] data contabile["+format_date(reg.data_contabile)+"] data registrazione["+format_date(reg.data_decorrenza)+"] data scadenza["+format_date(reg.data_scadenza)+"]"
-            log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
-            db.session.add(log)
-            reg.numero=None
-            reg.nome=None
-            validazione=reg.validazione_backref.first()
-            if validazione != None: db.session.delete(validazione)# per come è definito il database (models.py) cancellando la validazione si cancellano in automatico le registrazioni, le riconciliazioni e i movimenti che dipendono da questa
-            #db.session.delete(validazione)
-    #print("Registrazioni dove ricalcolare il saldo")
-    #for r in reg_saldo:
-    #    print(r.nome)
-    db.session.commit()
-    saldo(reg_saldo)
-    flash("Sono state annullate le registrazioni "+text)
-    unlock()
-    return redirect(url_for('registrazione', id=id))
+    form = ConfermaForm()
+    if form.validate_on_submit():
+        if registrazione.stato!=None and current_user.ruolo!="admin":
+            flash("Non hai i permessi per annullare questa registrazione")
+            return redirect(url_for('registrazione', id=id))
+        else:
+            lock()
+            RDA=[registrazione]
+            TRDA=None
+            reg_saldo=[]
+            #cerca tutte le registrazioni coinvolte nell'annullamento della prima e quelle per quale occore ricalcolare il saldo
+            #popolando dinamicamente la lista delle registrazioni da annullare RDA fino a quando non satura
+            while RDA != TRDA:
+                TRDA=RDA[:]
+                for registrazione in TRDA:
+                    riconciliazioni=Riconciliazione.query.filter_by(registrazione=registrazione).all()#riconciliazioni che dipendono dalle registrazioni da annullare
+                    for r in riconciliazioni:
+                        reg=r.validazione.registrazione
+                        if reg not in RDA: RDA.append(reg)
+                    registrazioni=Registrazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()#registrazioni che dipendono dalle validazione delle registrazioni da annullare
+                    for reg in registrazioni:
+                        if reg not in RDA: RDA.append(reg)
+                    riconciliazioni=Riconciliazione.query.filter_by(validazione=registrazione.validazione_backref.first()).all()#riconciliazioni che dipendono dalle validazioni delle registrazioni da annullare
+                    for r in riconciliazioni:
+                        if r.registrazione not in reg_saldo: reg_saldo.append(r.registrazione)
+            #print("Registrazioni da annullare")
+            #for reg in RDA:
+            #    print(reg.nome)
+            text=""
+            for reg in RDA:#ho trovato le registrazioni da annullare, quindi le annullo
+                if reg != None:
+                    text+=" "+reg.nome
+                    if reg.partner!=None:partner_nome=reg.partner.nome
+                    else:partner_nome=""
+                    datalog="Annullata registrazione "+str(reg.id)+" ["+reg.nome+"] importo["+str(reg.importo)+"] partner["+partner_nome+"] data contabile["+format_date(reg.data_contabile)+"] data registrazione["+format_date(reg.data_decorrenza)+"] data scadenza["+format_date(reg.data_scadenza)+"]"
+                    log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
+                    db.session.add(log)
+                    reg.numero=None
+                    reg.nome=None
+                    validazione=reg.validazione_backref.first()
+                    if validazione != None: db.session.delete(validazione)# per come è definito il database (models.py) cancellando la validazione si cancellano in automatico le registrazioni, le riconciliazioni e i movimenti che dipendono da questa
+                    #db.session.delete(validazione)
+            #print("Registrazioni dove ricalcolare il saldo")
+            #for r in reg_saldo:
+            #    print(r.nome)
+            db.session.commit()
+            saldo(reg_saldo)
+            flash("Sono state annullate le registrazioni "+text)
+            unlock()
+            return redirect(url_for('registrazione', id=id))
+    testo=registrazione.descrizione
+    if testo==None:testo="None"
+    return render_template('conferma.html', testo="Vuoi veramente annullare la registrazione "+testo+" ?", form=form)
 
 @app.route('/registrazioni/<id>', methods=['GET', 'POST'])
 @login_required
