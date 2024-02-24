@@ -5,7 +5,6 @@ from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from flask import render_template, flash, redirect, url_for, request, send_file, current_app
 from flask_login import login_user, logout_user, current_user, login_required
-#from flask_user import roles_required, UserManager
 from werkzeug.urls import url_parse
 from package import app, db
 from package.forms import *
@@ -30,14 +29,9 @@ import base64
 import xml.etree.ElementTree as ET
 from subprocess import call
 from flask_mail import Message
-#from package import mail
 from flask_mail import Mail
 
 from functools import wraps
-
-#user_manager = UserManager(app, db, User)
-
-#footer='CENTRALE TERMICA FOSSOLO SOC. COOPERATIVA - VIA MISA 1 - 40139 BOLOGNA - P.IVA 00324170372 - CF 00324170372'
 
 here = os.path.dirname(__file__)
 
@@ -45,24 +39,11 @@ locale.setlocale(locale.LC_ALL, 'it_IT.utf8')
 
 key1 = natsort_keygen(key=lambda x: x.nome.lower())
 
-LOCK=[False]
+LOCK=[False]#lo usavo insieme alle funzioni lock e unlock per gestire il multitrheading, adesso uso apache con thread singolo (file qbgest.conf) 
+# che è una soluzione molto più semplice e quindi robusta, tanto non devono accedere centinaia di utenti ma al massimo 2
+# se si volgiono gestire molti utenti ed evitare le pause bisogna ripristinare (meglio) la gestione del multithreading
 
 L=['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
-
-
-#from app.common import *
-#from app.impostazioni import *
-#from app.fattura import *
-#from app.ricevuta import *
-#from app.cassa import *
-#from app.generico import *
-#from app.iva import *
-#from app.stampa import *
-#from app.partner import *
-#from app.sdi import *
-
-#def chunkstring(string, length):
-#    return (string[0+i:length+i] for i in range(0, len(string), length))
 
 def chunkstring(string,length):
     words=string.split()
@@ -81,27 +62,11 @@ def requires_roles(*roles):
         @wraps(f)
         def wrapped(*args, **kwargs):
             if current_user.ruolo not in roles:
-                # Redirect the user to an unauthorized notice!
                 flash('Non hai i privilegi per accedere a questa pagina !')
                 return redirect(url_for('index'))
-                #return "You are not authorized to access this page"
             return f(*args, **kwargs)
         return wrapped
     return wrapper
-
-# def requires_access_level(access_level):
-    # def decorator(f):
-        # @wraps(f)
-        # def decorated_function(*args, **kwargs):
-            # if not session.get('email'):
-                # return redirect(url_for('login'))
-
-            # user = User.find_by_email(session['email'])
-            # elif not user.allowed(access_level):
-                # return redirect(url_for('index', message="You do not have access to that page. Sorry!"))
-            # return f(*args, **kwargs)
-        # return decorated_function
-    # return decorator
 
 # M A I N #########################################################################
 @app.route('/')
@@ -109,16 +74,13 @@ def requires_roles(*roles):
 @login_required
 def index():
     return render_template('index.html', title='Home')
-    #return redirect(url_for('immobili'))
 
 @app.route('/wait')
 def wait():
-    #l=request.args.get('link')
     return render_template ("wait.html", link="test")
 
 @app.route('/test')
 def test():
-    #a=request.args.get('prova')
     print("Test")
     time.sleep(3)
     return redirect(url_for('index'))
@@ -135,7 +97,6 @@ def login():
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         user.data=date.today()
-        unlock()
         db.session.commit()
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
@@ -234,8 +195,8 @@ def modifica_data():
     return render_template('data.html', testo="Impostare una nuova data ", form=form)
 
 @app.route('/chiusura_apertura', methods=['GET', 'POST'])
+@requires_roles('admin')#devo ancora sistemare la gestione dei periodi, per esempio evitare di chiudere 2 volte lo stesso esercizio, fino a quando non l'ho fatto faccio fare la chiusura solo all'amministratore 
 @login_required
-#@requires_roles('admin')
 def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura anno fiscale
     impostazioni=Impostazioni.query.get(1)
     anno=current_user.data.year
@@ -243,9 +204,6 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
     filter_dal=filter_al+relativedelta(days=1)-relativedelta(years=1)
     form = ConfermaForm()
     if form.validate_on_submit():
-        lock()
-        #filter_dal = current_user.dal
-        #filter_al = current_user.al
         registrazione=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura conto economico")
         db.session.add(registrazione)
         utile=0
@@ -327,7 +285,6 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
         reg_generico(apertura_passivita)
         impostazioni.starting_date=filter_al+relativedelta(days=1)
         db.session.commit()
-        unlock()
         return redirect(url_for('registrazioni', id=impostazioni.registro_misc.id))
     form.data_delibera.data = current_user.data
     return render_template('conferma.html', testo="Generare le scritture per la chiusura e la riapertura dei conti per il periodo dal "+filter_dal.strftime("%d/%m/%Y")+" al "+filter_al.strftime("%d/%m/%Y")+" ?", form=form)
@@ -337,12 +294,77 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
 def conti():#mostra il saldo di tutti i conti
     impostazioni=Impostazioni.query.get(1)
     conti = Conto.query.join(Sottomastro).join(Mastro).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).all()
-    saldo=[]
+    dal=impostazioni.starting_date
     for c in conti:
         filtro="filter(Movimento.conto==c)."
-        filtro+="filter(Movimento.data_contabile>=impostazioni.starting_date)."
-        saldo.append(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
-    return render_template('conti.html', conti=conti, saldo=saldo, inizio=impostazioni.starting_date)
+        filtro+="filter(Movimento.data_contabile>=dal)."
+        c.saldo=eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0
+    db.session.commit()
+    return render_template('conti.html', conti=conti, dal=dal)
+
+@app.route('/aggiorna_conti_cee')
+@login_required
+def aggiorna_conti_cee():#aggiorna il saldo dei conti nell'anno fiscale per visualizzare i totali cee
+    impostazioni=Impostazioni.query.get(1)
+    conti = Conto.query.join(Sottomastro).join(Mastro).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).all()
+    dal=impostazioni.starting_date
+    al=dal+relativedelta(years=1)-relativedelta(days=1)
+    for c in conti:
+        filtro="filter(Movimento.conto==c)."
+        filtro+="filter(Movimento.data_contabile>=dal)."
+        filtro+="filter(Movimento.data_contabile<=al)."
+        c.saldo=eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0
+    db.session.commit()
+    return redirect(url_for('conti_cee'))
+
+@app.route('/conti_cee')
+@login_required
+def conti_cee():#mostra il saldo dei conti cee
+    impostazioni=Impostazioni.query.get(1)
+    dal=impostazioni.starting_date
+    al=dal+relativedelta(years=1)-relativedelta(days=1)
+    conti = ContoCee.query.order_by(ContoCee.ordine).all()
+    for c in conti:
+        saldo=0
+        for c2 in c.conto:
+            saldo+=c2.saldo
+        c.saldo=saldo
+    db.session.commit()
+    return render_template('conti_cee.html', conti=conti, dal=dal, al=al)
+
+@app.route('/associa_cee')
+@login_required
+def associa_cee():
+    conto_id = request.args.get('conto_id')
+    conto_cee_id = request.args.get('conto_cee_id')
+    conto_cee=ContoCee.query.get(conto_cee_id)
+    conto=Conto.query.get(conto_id)
+    conto.conto_cee=conto_cee
+    db.session.commit()
+    return redirect(url_for('conto_cee', id=conto_cee_id))
+
+@app.route('/rimuovi_cee')
+@login_required
+def rimuovi_cee():
+    conto_id = request.args.get('conto_id')
+    conto_cee_id = request.args.get('conto_cee_id')
+    conto_cee=ContoCee.query.get(conto_cee_id)
+    conto=Conto.query.get(conto_id)
+    conto.conto_cee=None
+    db.session.commit()
+    return redirect(url_for('conto_cee', id=conto_cee_id))
+
+@app.route('/conto_cee/<id>', methods=['GET', 'POST'])
+@login_required
+def conto_cee(id):#mostra i movimenti sul singolo conto
+    conto=ContoCee.query.get(id)
+    conti = Conto.query.join(Sottomastro).join(Mastro).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).filter(Conto.conto_cee==None).filter(Conto.saldo!=0).all()
+    contiassociati = Conto.query.join(Sottomastro).join(Mastro).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).filter(Conto.conto_cee==conto).all()
+    saldo=0
+    for c in contiassociati:saldo+=c.saldo
+    conto.saldo=saldo
+    db.session.commit()
+    return render_template('conto_cee.html', conto=conto, conti=conti, contiassociati=contiassociati)
 
 @app.route('/movimenti/<id>', methods=['GET', 'POST'])
 @login_required
@@ -406,7 +428,6 @@ def registri():#mostra il totale ed il saldo di tutti i registri
 @app.route('/duplica_registrazione/<id>')
 @login_required
 def duplica_registrazione(id):#duplica una registrazione
-    lock()
     nuovaregistrazione=Registrazione.query.get(id)
     db.session.expunge(nuovaregistrazione)
     make_transient(nuovaregistrazione)
@@ -443,15 +464,11 @@ def duplica_registrazione(id):#duplica una registrazione
         nuovavoce.registrazione = nuovaregistrazione
         db.session.add(nuovavoce)
     db.session.commit()
-    #id=Registrazione.query.get(id).registro.id
-    #return redirect(url_for('registrazioni', id=id))
-    unlock()
     return redirect(url_for('registrazione', id=nuovaregistrazione.id))
 
 @app.route('/aggiungi_registrazione/<id>')
 @login_required
 def aggiungi_registrazione(id):#aggiunge una registrazione
-    lock()
     registro=Registro.query.get(id)
     registrazione=Registrazione(registro=registro, importo=0, saldo=0, data_contabile=current_user.data)
     if registro.categoria=="Fattura":
@@ -460,8 +477,6 @@ def aggiungi_registrazione(id):#aggiunge una registrazione
         registrazione.tipo_documento=registrazione.registro.tipo_documento
     db.session.add(registrazione)
     db.session.commit()
-    #return redirect(url_for('registrazioni', id=id))
-    unlock()
     return redirect(url_for('registrazione', id=registrazione.id))
 
 @app.route('/rimuovi_registrazione/<id>', methods=['GET', 'POST'])
@@ -470,14 +485,12 @@ def rimuovi_registrazione(id):#rimuove una registrazione
     registrazione=Registrazione.query.get(id)
     form = ConfermaForm()
     if form.validate_on_submit():
-        lock()
         id=registrazione.registro.id
         db.session.delete(registrazione)
         datalog="Rimossa registrazione "+str(registrazione.id)
         log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
         db.session.add(log)
         db.session.commit()
-        unlock()
         return redirect(url_for('registrazioni', id=id))
     form.data_delibera.data = current_user.data
     testo=registrazione.descrizione
@@ -494,7 +507,6 @@ def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, d
             flash("Non hai i permessi per annullare questa registrazione")
             return redirect(url_for('registrazione', id=id))
         else:
-            lock()
             RDA=[registrazione]
             TRDA=None
             reg_saldo=[]
@@ -536,7 +548,6 @@ def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, d
             db.session.commit()
             saldo(reg_saldo)
             flash("Sono state annullate le registrazioni "+text)
-            unlock()
             return redirect(url_for('registrazione', id=id))
     testo=registrazione.descrizione
     if testo==None:testo="None"
@@ -665,13 +676,6 @@ def registrazioni(id):#mostra le registrazioni appartenenti ad un registro
 
         saldo_iniziale=0
         if filter_dal!=None:
-            # anno=filter_dal.year#calcola il saldo iniziale nei conti tipo cassa
-            # fine_esercizio_anno=datetime.strptime(impostazioni.ultimo_giorno_esercizio+"/"+str(anno),"%d/%m/%Y").date()
-            # if filter_dal > fine_esercizio_anno:inizio_esercizio=fine_esercizio_anno+relativedelta(days=1)
-            # else:inizio_esercizio=fine_esercizio_anno-relativedelta(years=1)+relativedelta(days=1)
-            # if inizio_esercizio>impostazioni.starting_date:inizio_esercizio=impostazioni.starting_date
-            # #inizio_esercizio=impostazioni.starting_date#pezza messa per correggere al volo, da sistemare
-            # saldo_iniziale=eval("db.session.query(func.sum(Registrazione.importo))."+filtro+"filter(Registrazione.data_contabile>=inizio_esercizio).filter(Registrazione.data_contabile<filter_dal).scalar()") or 0
             saldo_iniziale=eval("db.session.query(func.sum(Registrazione.importo))."+filtro+"filter(Registrazione.data_contabile<filter_dal).scalar()") or 0
 
         if not current_user.bozze:
@@ -792,7 +796,6 @@ def aggiungi_voce(id):#aggiunge una voce ad una registrazione
 @app.route('/aggiungi_riconciliazione/<id>', methods=['GET', 'POST'])
 @login_required
 def aggiungi_riconciliazione(id):# nella registrazione di tipo cassa o generico aggiunge le voci per riconciliare con altre registrazioni
-    lock()
     impostazioni=Impostazioni.query.get(1)
     riconciliazione_id = request.args.get('riconciliazione_id')
     riconciliazione=Registrazione.query.get(riconciliazione_id)
@@ -816,14 +819,12 @@ def aggiungi_riconciliazione(id):# nella registrazione di tipo cassa o generico 
     voce=Voce(registrazione=registrazione, descrizione=riconciliazione.descrizione, conto=conto, partner=riconciliazione.partner, importo=-riconciliazione.saldo, riconciliazione=riconciliazione)
     db.session.add(voce)
     db.session.commit()
-    unlock()
     return redirect(url_for('registrazione', id=id))
 
 @app.route('/download_file/<id>')
 @login_required
 def download_file(id):#offre il file in download
     file=Allegato.query.get(id)
-    #print(file.nome)
     return send_file(io.BytesIO(file.binario),as_attachment=True,download_name=file.nome)#,mimetype='application/pdf')
     
 @app.route('/anagrafica', methods=['GET', 'POST'])
@@ -848,7 +849,6 @@ def partner(id):#visualizza il partner
     filtro_form=FiltroForm()
     del filtro_form.partner
     del filtro_form.bozze
-    #print(filtro_form.submit_filtro.data)
     if filtro_form.submit_filtro.data and filtro_form.validate():
         current_user.dal=filtro_form.dal.data
         current_user.al=filtro_form.al.data
@@ -912,7 +912,6 @@ def edit_partner(id):#modifica il partner
     partners = Partner.query.all()
     form = PartnerForm()
     if form.submit.data and form.validate():
-    #if form.validate_on_submit():
         partner.nome = form.nome.data
         partner.cf = form.cf.data
         partner.iva = form.iva.data
@@ -962,7 +961,6 @@ def edit_partner(id):#modifica il partner
         form.pa.data = partner.pa
         form.lav_autonomo.data = partner.lav_autonomo
         form.iban.data = partner.iban
-    #domicilio=partner.domicilio
     return render_template('edit_partner.html', form=form, partner=partner, partners=partners)
 # P A R T N E R #########################################################################
 
@@ -986,7 +984,6 @@ def aggiungi_stampa(id):
     stampa.vp7,stampa.vp8,stampa.vp9,stampa.vp10,stampa.vp11=0,0,0,0,0
     db.session.add(stampa)
     db.session.commit()
-    #return redirect(url_for('stampe', id=id))
     return redirect(url_for('stampa', id=stampa.id))
 
 @app.route('/rimuovi_stampa/<id>', methods=['GET', 'POST'])
@@ -1082,7 +1079,6 @@ def stampa_liquidazione_iva(id):
         stampa.VP11=Decimal(form.VP11.data).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
         db.session.commit()
         return redirect(url_for('genera_stampa_liquidazione_iva', id=id))
-        #flash('I dati sono stati salvati !')
     if form.is_submitted() and not form.validate():pass
     else:
         filtro=stampa.filtro_registrazione.first()
@@ -1095,9 +1091,7 @@ def stampa_liquidazione_iva(id):
         form.VP10.data=stampa.VP10
         form.VP11.data=stampa.VP11
     registro_liq_iva=stampa.registro_stampa.filtro_registro.first().registro
-    #registrazioni=Registrazione.query.filter(Registrazione.numero!=None).filter(Registrazione.registro==registro_liq_iva).all()
     registrazioni=Registrazione.query.outerjoin(Filtro_registrazione).filter(Registrazione.registro_id==15).filter(Filtro_registrazione.stampa_id==None).all()
-    #print(allegati)
     return render_template('stampa_liquidazione_iva.html', form=form, stampa=stampa, allegati=allegati, registrazioni=registrazioni)
 
 @app.route('/stampa_registro_iva/<id>', methods=['GET', 'POST'])
@@ -1120,7 +1114,6 @@ def stampa_registro_iva(id):
         current_user.anno_stampa=stampa.anno_stampa
         db.session.commit()
         return redirect(url_for('genera_stampa_registro_iva', id=id))
-        #flash('I dati sono stati salvati !')
     if form.is_submitted() and not form.validate():pass
     else:
         form.nome.data=stampa.nome
@@ -1151,14 +1144,12 @@ def stampa_partitario(id):
         current_user.data_scadenza_stampa=stampa.data_scadenza
         db.session.commit()
         return redirect(url_for('genera_stampa_partitario', id=id))
-        #flash('I dati sono stati salvati !')
     if form.is_submitted() and not form.validate():pass
     else:
         form.nome.data=stampa.nome
         form.data_decorrenza.data=stampa.data_decorrenza
         form.data_scadenza.data=stampa.data_scadenza
         if stampa.partner != None: form.partner.data=stampa.partner.nome
-    #conti=[]
     return render_template('stampa_partitario.html', form=form, stampa=stampa, allegati=allegati, partners=partners)
 
 @app.route('/stampa_libro_giornale/<id>', methods=['GET', 'POST'])
@@ -1181,7 +1172,6 @@ def stampa_libro_giornale(id):
         current_user.anno_stampa=stampa.anno_stampa
         db.session.commit()
         return redirect(url_for('genera_stampa_libro_giornale', id=id))
-        #flash('I dati sono stati salvati !')
     if form.is_submitted() and not form.validate():pass
     else:
         form.nome.data=stampa.nome
@@ -1216,14 +1206,12 @@ def stampa_libro_mastro(id):
         db.session.commit()
         filtro_conto=stampa.filtro_conto.all()
         return redirect(url_for('genera_stampa_libro_mastro', id=id))
-        #flash('I dati sono stati salvati !')
     if form.is_submitted() and not form.validate():pass
     else:
         form.nome.data=stampa.nome
         form.data_decorrenza.data=stampa.data_decorrenza
         form.data_scadenza.data=stampa.data_scadenza
         if stampa.partner != None: form.partner.data=stampa.partner.nome
-    #conti=[]
     return render_template('stampa_libro_mastro.html', form=form, stampa=stampa, allegati=allegati, partners=partners, conti=conti, filtro_conto=filtro_conto)
 
 @app.route('/stampa_bilancio_contabile/<id>', methods=['GET', 'POST'])
@@ -1246,13 +1234,11 @@ def stampa_bilancio_contabile(id):
         current_user.data_scadenza_stampa=stampa.data_scadenza
         db.session.commit()
         return redirect(url_for('genera_stampa_bilancio_contabile', id=id))
-        #flash('I dati sono stati salvati !')
     if form.is_submitted() and not form.validate():pass
     else:
         form.nome.data=stampa.nome
         form.data_decorrenza.data=stampa.data_decorrenza
         form.data_scadenza.data=stampa.data_scadenza
-    #conti=[]
     return render_template('stampa_bilancio_contabile.html', form=form, stampa=stampa, allegati=allegati)
 
 @app.route('/genera_stampa_liquidazione_iva/<id>')
@@ -1382,11 +1368,6 @@ def genera_stampa_libro_giornale_(id):
             data=io.BytesIO(bites.read())
         allegato=Allegato(stampa=stampa, nome="LIBRO GIORNALE.pdf", binario=data.read(), pagina_stampa=0)
         db.session.add(allegato)
-#        pagina=Stampa_libro_giornale_landscape(stampa)
-#        with open(filename, 'rb') as bites:
-#            data=io.BytesIO(bites.read())
-#        allegato=Allegato(stampa=stampa, nome="LIBRO GIORNALE LANDSCAPE.pdf", binario=data.read(), pagina_stampa=0)
-#        db.session.add(allegato)
     else:
         fregistri=stampa.registro_stampa.filtro_registro.all()
         registri=[]
@@ -1400,11 +1381,6 @@ def genera_stampa_libro_giornale_(id):
             data=io.BytesIO(bites.read())
         allegato=Allegato(stampa=stampa, nome="REGISTRO.pdf", binario=data.read(), pagina_stampa=0)
         db.session.add(allegato)
-#        pagina=Stampa_registri_landscape(stampa)
-#        with open(filename, 'rb') as bites:
-#            data=io.BytesIO(bites.read())
-#        allegato=Allegato(stampa=stampa, nome="LIBRO GIORNALE LANDSCAPE.pdf", binario=data.read(), pagina_stampa=0)
-#        db.session.add(allegato)
     db.session.commit()
     flash('Il libro giornale è stato generato !')
     return redirect(url_for('stampa', id=id))
@@ -1432,7 +1408,6 @@ def genera_stampa_bilancio_contabile_(id):
     return redirect(url_for('stampa', id=id))
 
 def Stampa_liquidazione_iva(stampa):
-    #registro=stampa.registro_stampa.registro
     registro=stampa.registro_stampa.filtro_registro.first().registro
     registrazione=stampa.filtro_registrazione.first().registrazione
     registri_fatture, conto_iva, imposta, imponibile, iva, IVA=calcola_IVA(registrazione)
@@ -1553,13 +1528,10 @@ def Stampa_registro_iva(stampa):
     filtro=filtro[:-1]
     filtro+="))."
 
-
-    #filtro="filter_by(registro=registro)."
     if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_contabile>=stampa.data_decorrenza)."
     if stampa.data_scadenza!=None:filtro+="filter(Registrazione.data_contabile<=stampa.data_scadenza)."
 
     registrazioni=eval("Registrazione.query.filter(Registrazione.numero!=None)."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.nome).all()")
-    #registrazioni=Registrazione.query.filter_by(registro=registro).filter(Registrazione.numero!=None).filter(and_(Registrazione.data_contabile >= stampa.data_decorrenza, Registrazione.data_contabile <= stampa.data_scadenza)).order_by(Registrazione.numero).all()
     if len(registrazioni)>0:
         for r in registrazioni:
             segno2=1
@@ -2066,18 +2038,6 @@ def Stampa_partitario_singolo(stampa):
     can.writebold(0,"Elenco documenti")
     can.newline()
     totale=0
-    # registri = Registro.query.filter(or_(Registro.categoria=="Cassa",Registro.categoria=="Fattura")).all()
-    # filtro="filter(Registrazione.partner==stampa.partner)."
-    # filtro+="filter(or_("
-    # for i in range(len(registri)):
-        # filtro+="Registrazione.registro==registri["+str(i)+"],"
-    # filtro=filtro[:-1]
-    # filtro+="))."
-    # if stampa.data_decorrenza!=None:filtro+="filter(Registrazione.data_contabile>=stampa.data_decorrenza)."
-    # filtro+="filter(Registrazione.data_contabile<=data_scadenza)."
-    # filtro+="filter(Registrazione.numero!=None)."
-    # registrazioni = eval("Registrazione.query."+filtro+"order_by(Registrazione.data_contabile).order_by(Registrazione.numero).all()")
-    # for r in registrazioni:
     for r in REG:
         if (r.registro.categoria=="Cassa" or r.registro.categoria=="Fattura" or r.registro.categoria=="Ricevuta") and r.partner==stampa.partner:
             can.newline()
@@ -2517,11 +2477,9 @@ def voce_iva(id):#modifica la voce della liquidazione IVA
 @app.route('/registra_iva/<id>', methods=['GET', 'POST'])
 @login_required
 def registra_iva(id):#registra la registrazione liquidazione IVA
-    lock()
     registrazione=Registrazione.query.get(id)
     if registrazione.validazione_backref.first() == None:
         reg_iva(registrazione)
-    unlock()
     return redirect(url_for('iva', id=id))
 
 @app.route('/aggiungi_riconciliazione_iva/<id>', methods=['GET', 'POST'])
@@ -2669,11 +2627,9 @@ def voce_generico(id):#modifica la voce della registrazione generica
 @app.route('/registra_generico/<id>', methods=['GET', 'POST'])
 @login_required
 def registra_generico(id):#registra la registrazione generica
-    lock()
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
-        unlock()
         return redirect(url_for('generico', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_generico(registrazione)
@@ -2712,7 +2668,6 @@ def registra_generico(id):#registra la registrazione generica
                     vo.descrizione="Transito RA"
                     ritenuta_acconto.validazione=registrazione.validazione_backref.first()
                     reg_fattura(ritenuta_acconto)
-    unlock()
     return redirect(url_for('generico', id=id))
 
 def reg_generico(registrazione):#registra la registrazione generica
@@ -2849,11 +2804,9 @@ def voce_cassa(id):#edita la voce di cassa
 @app.route('/registra_cassa/<id>')
 @login_required
 def registra_cassa(id):#registra la registrazione tipo cassa e genera le registrazioni accessorie
-    lock()
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
-        unlock()
         return redirect(url_for('cassa', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_cassa(registrazione)
@@ -2892,7 +2845,6 @@ def registra_cassa(id):#registra la registrazione tipo cassa e genera le registr
                     vo.descrizione="Transito RA"
                     ritenuta_acconto.validazione=registrazione.validazione_backref.first()
                     reg_fattura(ritenuta_acconto)
-    unlock()
     return redirect(url_for('registrazioni', id=registrazione.registro.id))
 
 def reg_cassa(registrazione):#registra la registrazione tipo cassa
@@ -3001,11 +2953,9 @@ def voce_ricevuta(id):#modifica la voce della ricevuta
 @app.route('/registra_ricevuta/<id>')
 @login_required#registra la ricevuta
 def registra_ricevuta(id):
-    lock()
     registrazione=Registrazione.query.get(id)
     if registrazione.validazione_backref.first() == None:
         reg_ricevuta(registrazione)
-    unlock()
     return redirect(url_for('ricevuta', id=id))
 
 @app.route('/aggiungi_ricevuta/<id>', methods=['GET', 'POST'])
@@ -3146,12 +3096,10 @@ def voce_fattura(id):#edita la voce fattura
 @app.route('/registra_fattura/<id>', methods=['GET', 'POST'])
 @login_required
 def registra_fattura(id):#registra la fattura e genera le registrazioni accessorie
-    lock()
     registrazione=Registrazione.query.get(id)
     impostazioni=Impostazioni.query.get(1)
     if not validate_fattura(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
-        unlock()
         return redirect(url_for('fattura', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_fattura(registrazione)
@@ -3268,7 +3216,6 @@ def registra_fattura(id):#registra la fattura e genera le registrazioni accessor
             if registrazione.partner.amministratore!=None: registrazione.domiciliatario=registrazione.partner.amministratore
             if registrazione.letturista: registrazione.domiciliatario=registrazione.partner.letturista
         db.session.commit()
-    unlock()
     return redirect(url_for('fattura', id=id))
 
 @app.route('/edit_top_fattura/<id>', methods=['GET', 'POST'])
@@ -4182,9 +4129,20 @@ def impostazioni_generali():
 
 
 # C O M M O N #########################################################################
+@app.route('/testlock')
+@login_required
+@requires_roles('admin')
+def testlock():
+    lock()
+    return redirect(url_for('index'))
+
 def lock():
+    i=0
+    while LOCK[0] and i<100:#timeout del blocco di circa 10 secondi
+        print(i)
+        time.sleep(0.1)
+        i+=1
     #print("lock")
-    while LOCK[0]:time.sleep(0.1)
     LOCK[0]=True
 
 def unlock():
@@ -4621,7 +4579,6 @@ def invia_fattura_sdi(id):#invia la fattura elettronica all'SDI tramite PEC
 @app.route('/invia_fattura_sdi_/<id>', methods=['GET', 'POST'])
 @login_required
 def invia_fattura_sdi_(id):#invia la fattura elettronica all'SDI tramite PEC
-    lock()
     impostazioni=Impostazioni.query.get(1)
     app.config['MAIL_SERVER']=impostazioni.smtp_server
     app.config['MAIL_USERNAME']=impostazioni.smtp_user
@@ -4637,7 +4594,6 @@ def invia_fattura_sdi_(id):#invia la fattura elettronica all'SDI tramite PEC
         allegato.sdi.sent=True
         allegato.sdi.timestamp=func.now()
         db.session.commit()
-    unlock()
     return redirect(url_for('fattura', id=id))
 
 @app.route('/rimuovi_record_sdi/<id>', methods=['GET', 'POST'])
@@ -4661,16 +4617,12 @@ def importa_fattura_sdi(id):
 @app.route('/importa_fattura_sdi_/<id>')
 @login_required
 def importa_fattura_sdi_(id):#importa la fattura elettronica dal record sdi
-    lock()
     impostazioni=Impostazioni.query.get(1)
     record_sdi=Sdi.query.get(id)
     if record_sdi.registrazione==None:
-
         for a in record_sdi.allegato:#cerca l'allegato fattura elettronica
             if a.nome[-3:].lower()=="xml" and len(a.nome)>12 and not "_" in a.nome[-9:]:break
-
         nome=a.nome
-        #print(nome)
         filename=os.path.join(here,nome)
         
         f = open(filename, 'wb')
@@ -4921,7 +4873,6 @@ def importa_fattura_sdi_(id):#importa la fattura elettronica dal record sdi
         os.remove(filename)
         db.session.commit()
         flash('La fattura elettronica è stata importata')
-    unlock()
     return redirect(url_for('sdi_in'))
     #return redirect(url_for('registrazione', id=registrazione.id))
 
@@ -4933,7 +4884,6 @@ def check_sdi():
 @app.route('/check_sdi_')
 @login_required
 def check_sdi_():#scarica email da PEC e popola i records sdi
-    lock()
     impostazioni=Impostazioni.query.get(1)
     imap = imaplib.IMAP4_SSL(impostazioni.imap_server)
     imap.login(impostazioni.imap_user, impostazioni.imap_pwd)
@@ -5054,7 +5004,6 @@ def check_sdi_():#scarica email da PEC e popola i records sdi
     imap.close()
     imap.logout()
     flash('Il sistema di interscambio è stato interrogato')
-    unlock()
     return redirect(url_for('sdi_in'))
 
 def text(v):

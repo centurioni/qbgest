@@ -180,6 +180,15 @@ class Conto(db.Model):#conto analitico
     conto_chiusura = db.relationship('Impostazioni', backref='conto_chiusura', foreign_keys="[Impostazioni.conto_chiusura_id]", lazy='dynamic', passive_deletes='all')
     conto_apertura = db.relationship('Impostazioni', backref='conto_apertura', foreign_keys="[Impostazioni.conto_apertura_id]", lazy='dynamic', passive_deletes='all')
     conto_lav_autonomo = db.relationship('Impostazioni', backref='conto_lav_autonomo', foreign_keys="[Impostazioni.conto_lav_autonomo_id]", lazy='dynamic', passive_deletes='all')
+    contocee_id = db.Column(db.Integer, db.ForeignKey('conto_cee.id'))
+    saldo = db.Column(db.Numeric)
+
+class ContoCee(db.Model):#conto analitico CEE
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.Text())
+    ordine = db.Column(db.Integer)
+    saldo = db.Column(db.Numeric)
+    conto = db.relationship('Conto', backref='conto_cee', lazy='dynamic')
 
 class Registro(db.Model):
     __tablename__ = 'registro'
