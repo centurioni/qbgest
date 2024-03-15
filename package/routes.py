@@ -2251,13 +2251,13 @@ def Stampa_partitario(stampa):
     for partner in partners:
         saldo=0
         insoluti=0
-        registrazioni = eval("Registrazione.query.filter(Registrazione.data_contabile<=data_scadenza)."+filtro+"all()")
+        registrazioni = eval("Registrazione.query.filter(Registrazione.data_contabile<=data_scadenza)."+filtro+"all()")#tutte le fatture &C emesse prima della data x. Ci sono anche le fatture non ancora scadute, che scadono dopo la data x
         for r in registrazioni:
             riconciliazioni=r.riconciliazione.all()
             for ric in riconciliazioni:
                     if ric.movimento.data_contabile<=data_scadenza:
                         saldo+=ric.movimento.importo*segno
-        registrazioni = eval("Registrazione.query.filter(Registrazione.data_scadenza<data_scadenza)."+filtro+"all()")
+        registrazioni = eval("Registrazione.query.filter(Registrazione.data_scadenza<data_scadenza)."+filtro+"all()")#tutte le fatture &C scadute prima della data x, quindi potenzialmente insolute
         for r in registrazioni:
             riconciliazioni=r.riconciliazione.all()
             for ric in riconciliazioni:

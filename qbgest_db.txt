@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 11.12 (Debian 11.12-0+deb10u1)
--- Dumped by pg_dump version 11.12 (Debian 11.12-0+deb10u1)
+-- Dumped from database version 13.13 (Debian 13.13-0+deb11u1)
+-- Dumped by pg_dump version 13.13 (Debian 13.13-0+deb11u1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -18,10 +18,10 @@ SET row_security = off;
 
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+SET default_table_access_method = heap;
 
 --
--- Name: alembic_version; Type: TABLE; Schema: public; Owner: user1
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.alembic_version (
@@ -29,9 +29,8 @@ CREATE TABLE public.alembic_version (
 );
 
 
-
 --
--- Name: allegato; Type: TABLE; Schema: public; Owner: user1
+-- Name: allegato; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.allegato (
@@ -45,9 +44,8 @@ CREATE TABLE public.allegato (
 );
 
 
-
 --
--- Name: allegato_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: allegato_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.allegato_id_seq
@@ -58,16 +56,15 @@ CREATE SEQUENCE public.allegato_id_seq
     CACHE 1;
 
 
-
 --
--- Name: allegato_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: allegato_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.allegato_id_seq OWNED BY public.allegato.id;
 
 
 --
--- Name: conto; Type: TABLE; Schema: public; Owner: user1
+-- Name: conto; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.conto (
@@ -75,13 +72,46 @@ CREATE TABLE public.conto (
     codice integer,
     nome text,
     descrizione text,
-    sottomastro_id integer
+    sottomastro_id integer,
+    contocee_id integer,
+    saldo numeric
 );
 
 
+--
+-- Name: conto_cee; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.conto_cee (
+    id integer NOT NULL,
+    nome text,
+    ordine integer,
+    saldo numeric
+);
+
 
 --
--- Name: conto_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: conto_cee_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.conto_cee_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: conto_cee_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.conto_cee_id_seq OWNED BY public.conto_cee.id;
+
+
+--
+-- Name: conto_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.conto_id_seq
@@ -92,16 +122,15 @@ CREATE SEQUENCE public.conto_id_seq
     CACHE 1;
 
 
-
 --
--- Name: conto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: conto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.conto_id_seq OWNED BY public.conto.id;
 
 
 --
--- Name: filtro_conto; Type: TABLE; Schema: public; Owner: user1
+-- Name: filtro_conto; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.filtro_conto (
@@ -111,9 +140,8 @@ CREATE TABLE public.filtro_conto (
 );
 
 
-
 --
--- Name: filtro_conto_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: filtro_conto_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.filtro_conto_id_seq
@@ -124,16 +152,15 @@ CREATE SEQUENCE public.filtro_conto_id_seq
     CACHE 1;
 
 
-
 --
--- Name: filtro_conto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: filtro_conto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.filtro_conto_id_seq OWNED BY public.filtro_conto.id;
 
 
 --
--- Name: filtro_estratto_conto; Type: TABLE; Schema: public; Owner: user1
+-- Name: filtro_estratto_conto; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.filtro_estratto_conto (
@@ -143,9 +170,8 @@ CREATE TABLE public.filtro_estratto_conto (
 );
 
 
-
 --
--- Name: filtro_estratto_conto_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: filtro_estratto_conto_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.filtro_estratto_conto_id_seq
@@ -156,16 +182,15 @@ CREATE SEQUENCE public.filtro_estratto_conto_id_seq
     CACHE 1;
 
 
-
 --
--- Name: filtro_estratto_conto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: filtro_estratto_conto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.filtro_estratto_conto_id_seq OWNED BY public.filtro_estratto_conto.id;
 
 
 --
--- Name: filtro_registrazione; Type: TABLE; Schema: public; Owner: user1
+-- Name: filtro_registrazione; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.filtro_registrazione (
@@ -175,9 +200,8 @@ CREATE TABLE public.filtro_registrazione (
 );
 
 
-
 --
--- Name: filtro_registrazione_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: filtro_registrazione_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.filtro_registrazione_id_seq
@@ -188,16 +212,15 @@ CREATE SEQUENCE public.filtro_registrazione_id_seq
     CACHE 1;
 
 
-
 --
--- Name: filtro_registrazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: filtro_registrazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.filtro_registrazione_id_seq OWNED BY public.filtro_registrazione.id;
 
 
 --
--- Name: filtro_registro; Type: TABLE; Schema: public; Owner: user1
+-- Name: filtro_registro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.filtro_registro (
@@ -207,9 +230,8 @@ CREATE TABLE public.filtro_registro (
 );
 
 
-
 --
--- Name: filtro_registro_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: filtro_registro_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.filtro_registro_id_seq
@@ -220,16 +242,15 @@ CREATE SEQUENCE public.filtro_registro_id_seq
     CACHE 1;
 
 
-
 --
--- Name: filtro_registro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: filtro_registro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.filtro_registro_id_seq OWNED BY public.filtro_registro.id;
 
 
 --
--- Name: imposta; Type: TABLE; Schema: public; Owner: user1
+-- Name: imposta; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.imposta (
@@ -246,9 +267,8 @@ CREATE TABLE public.imposta (
 );
 
 
-
 --
--- Name: imposta_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: imposta_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.imposta_id_seq
@@ -259,16 +279,15 @@ CREATE SEQUENCE public.imposta_id_seq
     CACHE 1;
 
 
-
 --
--- Name: imposta_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: imposta_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.imposta_id_seq OWNED BY public.imposta.id;
 
 
 --
--- Name: impostazioni; Type: TABLE; Schema: public; Owner: user1
+-- Name: impostazioni; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.impostazioni (
@@ -301,9 +320,8 @@ CREATE TABLE public.impostazioni (
 );
 
 
-
 --
--- Name: impostazioni_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: impostazioni_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.impostazioni_id_seq
@@ -314,16 +332,15 @@ CREATE SEQUENCE public.impostazioni_id_seq
     CACHE 1;
 
 
-
 --
--- Name: impostazioni_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: impostazioni_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.impostazioni_id_seq OWNED BY public.impostazioni.id;
 
 
 --
--- Name: log; Type: TABLE; Schema: public; Owner: user1
+-- Name: log; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.log (
@@ -334,9 +351,8 @@ CREATE TABLE public.log (
 );
 
 
-
 --
--- Name: log_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.log_id_seq
@@ -347,16 +363,15 @@ CREATE SEQUENCE public.log_id_seq
     CACHE 1;
 
 
-
 --
--- Name: log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.log_id_seq OWNED BY public.log.id;
 
 
 --
--- Name: mastro; Type: TABLE; Schema: public; Owner: user1
+-- Name: mastro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.mastro (
@@ -367,9 +382,8 @@ CREATE TABLE public.mastro (
 );
 
 
-
 --
--- Name: mastro_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: mastro_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.mastro_id_seq
@@ -380,16 +394,15 @@ CREATE SEQUENCE public.mastro_id_seq
     CACHE 1;
 
 
-
 --
--- Name: mastro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: mastro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.mastro_id_seq OWNED BY public.mastro.id;
 
 
 --
--- Name: movimento; Type: TABLE; Schema: public; Owner: user1
+-- Name: movimento; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.movimento (
@@ -404,9 +417,8 @@ CREATE TABLE public.movimento (
 );
 
 
-
 --
--- Name: movimento_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: movimento_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.movimento_id_seq
@@ -417,16 +429,15 @@ CREATE SEQUENCE public.movimento_id_seq
     CACHE 1;
 
 
-
 --
--- Name: movimento_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: movimento_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.movimento_id_seq OWNED BY public.movimento.id;
 
 
 --
--- Name: pagamento; Type: TABLE; Schema: public; Owner: user1
+-- Name: pagamento; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.pagamento (
@@ -438,9 +449,8 @@ CREATE TABLE public.pagamento (
 );
 
 
-
 --
--- Name: pagamento_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: pagamento_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.pagamento_id_seq
@@ -451,16 +461,15 @@ CREATE SEQUENCE public.pagamento_id_seq
     CACHE 1;
 
 
-
 --
--- Name: pagamento_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: pagamento_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.pagamento_id_seq OWNED BY public.pagamento.id;
 
 
 --
--- Name: partner; Type: TABLE; Schema: public; Owner: user1
+-- Name: partner; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.partner (
@@ -494,9 +503,8 @@ CREATE TABLE public.partner (
 );
 
 
-
 --
--- Name: partner_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: partner_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.partner_id_seq
@@ -507,16 +515,15 @@ CREATE SEQUENCE public.partner_id_seq
     CACHE 1;
 
 
-
 --
--- Name: partner_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: partner_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.partner_id_seq OWNED BY public.partner.id;
 
 
 --
--- Name: registrazione; Type: TABLE; Schema: public; Owner: user1
+-- Name: registrazione; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.registrazione (
@@ -543,9 +550,8 @@ CREATE TABLE public.registrazione (
 );
 
 
-
 --
--- Name: registrazione_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: registrazione_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.registrazione_id_seq
@@ -556,16 +562,15 @@ CREATE SEQUENCE public.registrazione_id_seq
     CACHE 1;
 
 
-
 --
--- Name: registrazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: registrazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.registrazione_id_seq OWNED BY public.registrazione.id;
 
 
 --
--- Name: registro; Type: TABLE; Schema: public; Owner: user1
+-- Name: registro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.registro (
@@ -582,9 +587,8 @@ CREATE TABLE public.registro (
 );
 
 
-
 --
--- Name: registro_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: registro_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.registro_id_seq
@@ -595,16 +599,15 @@ CREATE SEQUENCE public.registro_id_seq
     CACHE 1;
 
 
-
 --
--- Name: registro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: registro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.registro_id_seq OWNED BY public.registro.id;
 
 
 --
--- Name: registro_stampa; Type: TABLE; Schema: public; Owner: user1
+-- Name: registro_stampa; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.registro_stampa (
@@ -615,9 +618,8 @@ CREATE TABLE public.registro_stampa (
 );
 
 
-
 --
--- Name: registro_stampa_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: registro_stampa_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.registro_stampa_id_seq
@@ -628,16 +630,15 @@ CREATE SEQUENCE public.registro_stampa_id_seq
     CACHE 1;
 
 
-
 --
--- Name: registro_stampa_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: registro_stampa_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.registro_stampa_id_seq OWNED BY public.registro_stampa.id;
 
 
 --
--- Name: riconciliazione; Type: TABLE; Schema: public; Owner: user1
+-- Name: riconciliazione; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.riconciliazione (
@@ -648,9 +649,8 @@ CREATE TABLE public.riconciliazione (
 );
 
 
-
 --
--- Name: riconciliazione_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: riconciliazione_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.riconciliazione_id_seq
@@ -661,16 +661,15 @@ CREATE SEQUENCE public.riconciliazione_id_seq
     CACHE 1;
 
 
-
 --
--- Name: riconciliazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: riconciliazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.riconciliazione_id_seq OWNED BY public.riconciliazione.id;
 
 
 --
--- Name: ritenuta; Type: TABLE; Schema: public; Owner: user1
+-- Name: ritenuta; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.ritenuta (
@@ -682,9 +681,8 @@ CREATE TABLE public.ritenuta (
 );
 
 
-
 --
--- Name: ritenuta_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: ritenuta_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.ritenuta_id_seq
@@ -695,16 +693,15 @@ CREATE SEQUENCE public.ritenuta_id_seq
     CACHE 1;
 
 
-
 --
--- Name: ritenuta_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: ritenuta_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.ritenuta_id_seq OWNED BY public.ritenuta.id;
 
 
 --
--- Name: sdi; Type: TABLE; Schema: public; Owner: user1
+-- Name: sdi; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.sdi (
@@ -718,9 +715,8 @@ CREATE TABLE public.sdi (
 );
 
 
-
 --
--- Name: sdi_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: sdi_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.sdi_id_seq
@@ -731,16 +727,15 @@ CREATE SEQUENCE public.sdi_id_seq
     CACHE 1;
 
 
-
 --
--- Name: sdi_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: sdi_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.sdi_id_seq OWNED BY public.sdi.id;
 
 
 --
--- Name: sottomastro; Type: TABLE; Schema: public; Owner: user1
+-- Name: sottomastro; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.sottomastro (
@@ -751,9 +746,8 @@ CREATE TABLE public.sottomastro (
 );
 
 
-
 --
--- Name: sottomastro_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: sottomastro_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.sottomastro_id_seq
@@ -764,16 +758,15 @@ CREATE SEQUENCE public.sottomastro_id_seq
     CACHE 1;
 
 
-
 --
--- Name: sottomastro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: sottomastro_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.sottomastro_id_seq OWNED BY public.sottomastro.id;
 
 
 --
--- Name: stampa; Type: TABLE; Schema: public; Owner: user1
+-- Name: stampa; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.stampa (
@@ -796,9 +789,8 @@ CREATE TABLE public.stampa (
 );
 
 
-
 --
--- Name: stampa_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: stampa_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.stampa_id_seq
@@ -809,16 +801,15 @@ CREATE SEQUENCE public.stampa_id_seq
     CACHE 1;
 
 
-
 --
--- Name: stampa_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: stampa_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.stampa_id_seq OWNED BY public.stampa.id;
 
 
 --
--- Name: tipo_documento; Type: TABLE; Schema: public; Owner: user1
+-- Name: tipo_documento; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.tipo_documento (
@@ -829,9 +820,8 @@ CREATE TABLE public.tipo_documento (
 );
 
 
-
 --
--- Name: tipo_documento_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: tipo_documento_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.tipo_documento_id_seq
@@ -842,16 +832,15 @@ CREATE SEQUENCE public.tipo_documento_id_seq
     CACHE 1;
 
 
-
 --
--- Name: tipo_documento_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: tipo_documento_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.tipo_documento_id_seq OWNED BY public.tipo_documento.id;
 
 
 --
--- Name: user; Type: TABLE; Schema: public; Owner: user1
+-- Name: user; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public."user" (
@@ -875,9 +864,8 @@ CREATE TABLE public."user" (
 );
 
 
-
 --
--- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.user_id_seq
@@ -888,16 +876,15 @@ CREATE SEQUENCE public.user_id_seq
     CACHE 1;
 
 
-
 --
--- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.user_id_seq OWNED BY public."user".id;
 
 
 --
--- Name: validazione; Type: TABLE; Schema: public; Owner: user1
+-- Name: validazione; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.validazione (
@@ -906,9 +893,8 @@ CREATE TABLE public.validazione (
 );
 
 
-
 --
--- Name: validazione_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: validazione_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.validazione_id_seq
@@ -919,16 +905,15 @@ CREATE SEQUENCE public.validazione_id_seq
     CACHE 1;
 
 
-
 --
--- Name: validazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: validazione_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.validazione_id_seq OWNED BY public.validazione.id;
 
 
 --
--- Name: voce; Type: TABLE; Schema: public; Owner: user1
+-- Name: voce; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.voce (
@@ -947,9 +932,8 @@ CREATE TABLE public.voce (
 );
 
 
-
 --
--- Name: voce_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: voce_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.voce_id_seq
@@ -960,16 +944,15 @@ CREATE SEQUENCE public.voce_id_seq
     CACHE 1;
 
 
-
 --
--- Name: voce_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: voce_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.voce_id_seq OWNED BY public.voce.id;
 
 
 --
--- Name: voce_iva; Type: TABLE; Schema: public; Owner: user1
+-- Name: voce_iva; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.voce_iva (
@@ -981,9 +964,8 @@ CREATE TABLE public.voce_iva (
 );
 
 
-
 --
--- Name: voce_iva_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: voce_iva_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.voce_iva_id_seq
@@ -994,16 +976,15 @@ CREATE SEQUENCE public.voce_iva_id_seq
     CACHE 1;
 
 
-
 --
--- Name: voce_iva_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: voce_iva_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.voce_iva_id_seq OWNED BY public.voce_iva.id;
 
 
 --
--- Name: voce_ritenuta; Type: TABLE; Schema: public; Owner: user1
+-- Name: voce_ritenuta; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.voce_ritenuta (
@@ -1015,9 +996,8 @@ CREATE TABLE public.voce_ritenuta (
 );
 
 
-
 --
--- Name: voce_ritenuta_id_seq; Type: SEQUENCE; Schema: public; Owner: user1
+-- Name: voce_ritenuta_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.voce_ritenuta_id_seq
@@ -1028,205 +1008,211 @@ CREATE SEQUENCE public.voce_ritenuta_id_seq
     CACHE 1;
 
 
-
 --
--- Name: voce_ritenuta_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user1
+-- Name: voce_ritenuta_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.voce_ritenuta_id_seq OWNED BY public.voce_ritenuta.id;
 
 
 --
--- Name: allegato id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: allegato id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.allegato ALTER COLUMN id SET DEFAULT nextval('public.allegato_id_seq'::regclass);
 
 
 --
--- Name: conto id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: conto id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.conto ALTER COLUMN id SET DEFAULT nextval('public.conto_id_seq'::regclass);
 
 
 --
--- Name: filtro_conto id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: conto_cee id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.conto_cee ALTER COLUMN id SET DEFAULT nextval('public.conto_cee_id_seq'::regclass);
+
+
+--
+-- Name: filtro_conto id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_conto ALTER COLUMN id SET DEFAULT nextval('public.filtro_conto_id_seq'::regclass);
 
 
 --
--- Name: filtro_estratto_conto id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: filtro_estratto_conto id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_estratto_conto ALTER COLUMN id SET DEFAULT nextval('public.filtro_estratto_conto_id_seq'::regclass);
 
 
 --
--- Name: filtro_registrazione id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: filtro_registrazione id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registrazione ALTER COLUMN id SET DEFAULT nextval('public.filtro_registrazione_id_seq'::regclass);
 
 
 --
--- Name: filtro_registro id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: filtro_registro id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registro ALTER COLUMN id SET DEFAULT nextval('public.filtro_registro_id_seq'::regclass);
 
 
 --
--- Name: imposta id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: imposta id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.imposta ALTER COLUMN id SET DEFAULT nextval('public.imposta_id_seq'::regclass);
 
 
 --
--- Name: impostazioni id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: impostazioni id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni ALTER COLUMN id SET DEFAULT nextval('public.impostazioni_id_seq'::regclass);
 
 
 --
--- Name: log id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: log id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.log ALTER COLUMN id SET DEFAULT nextval('public.log_id_seq'::regclass);
 
 
 --
--- Name: mastro id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: mastro id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mastro ALTER COLUMN id SET DEFAULT nextval('public.mastro_id_seq'::regclass);
 
 
 --
--- Name: movimento id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: movimento id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.movimento ALTER COLUMN id SET DEFAULT nextval('public.movimento_id_seq'::regclass);
 
 
 --
--- Name: pagamento id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: pagamento id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pagamento ALTER COLUMN id SET DEFAULT nextval('public.pagamento_id_seq'::regclass);
 
 
 --
--- Name: partner id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: partner id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.partner ALTER COLUMN id SET DEFAULT nextval('public.partner_id_seq'::regclass);
 
 
 --
--- Name: registrazione id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: registrazione id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione ALTER COLUMN id SET DEFAULT nextval('public.registrazione_id_seq'::regclass);
 
 
 --
--- Name: registro id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: registro id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro ALTER COLUMN id SET DEFAULT nextval('public.registro_id_seq'::regclass);
 
 
 --
--- Name: registro_stampa id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: registro_stampa id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro_stampa ALTER COLUMN id SET DEFAULT nextval('public.registro_stampa_id_seq'::regclass);
 
 
 --
--- Name: riconciliazione id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: riconciliazione id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.riconciliazione ALTER COLUMN id SET DEFAULT nextval('public.riconciliazione_id_seq'::regclass);
 
 
 --
--- Name: ritenuta id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: ritenuta id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ritenuta ALTER COLUMN id SET DEFAULT nextval('public.ritenuta_id_seq'::regclass);
 
 
 --
--- Name: sdi id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: sdi id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sdi ALTER COLUMN id SET DEFAULT nextval('public.sdi_id_seq'::regclass);
 
 
 --
--- Name: sottomastro id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: sottomastro id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sottomastro ALTER COLUMN id SET DEFAULT nextval('public.sottomastro_id_seq'::regclass);
 
 
 --
--- Name: stampa id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: stampa id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stampa ALTER COLUMN id SET DEFAULT nextval('public.stampa_id_seq'::regclass);
 
 
 --
--- Name: tipo_documento id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: tipo_documento id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tipo_documento ALTER COLUMN id SET DEFAULT nextval('public.tipo_documento_id_seq'::regclass);
 
 
 --
--- Name: user id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: user id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."user" ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
 
 
 --
--- Name: validazione id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: validazione id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.validazione ALTER COLUMN id SET DEFAULT nextval('public.validazione_id_seq'::regclass);
 
 
 --
--- Name: voce id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: voce id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce ALTER COLUMN id SET DEFAULT nextval('public.voce_id_seq'::regclass);
 
 
 --
--- Name: voce_iva id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: voce_iva id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_iva ALTER COLUMN id SET DEFAULT nextval('public.voce_iva_id_seq'::regclass);
 
 
 --
--- Name: voce_ritenuta id; Type: DEFAULT; Schema: public; Owner: user1
+-- Name: voce_ritenuta id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_ritenuta ALTER COLUMN id SET DEFAULT nextval('public.voce_ritenuta_id_seq'::regclass);
 
 
 --
--- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
@@ -1235,7 +1221,7 @@ COPY public.alembic_version (version_num) FROM stdin;
 
 
 --
--- Data for Name: allegato; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: allegato; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.allegato (id, nome, binario, registrazione_id, pagina_stampa, stampa_id, sdi_id) FROM stdin;
@@ -1248,330 +1234,338 @@ COPY public.allegato (id, nome, binario, registrazione_id, pagina_stampa, stampa
 
 
 --
--- Data for Name: conto; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: conto; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.conto (id, codice, nome, descrizione, sottomastro_id) FROM stdin;
-306	1	01.01.001 DENARO E VALORI IN CASSA	DENARO E VALORI IN CASSA	47
-308	3	01.01.003 C/C UNICREDIT BANCA SPA	C/C UNICREDIT BANCA SPA	47
-309	4	01.01.004 C/C POSTALE	C/C POSTALE	47
-310	5	01.01.005 C/C EMILBANCA-CR.COOPERAT	C/C EMILBANCA-CR.COOPERAT	47
-311	6	01.01.006 RICEVUTE BANCARIE ATTIVE	RICEVUTE BANCARIE ATTIVE	47
-312	7	01.01.007 R.BANCARIE ALL'INCASSO	R.BANCARIE ALL'INCASSO	47
-313	8	01.01.008 C/C FIDO EMILBANCA	C/C FIDO EMILBANCA	47
-314	9	01.01.009 FINANZIAMENTO UNICREDIT	FINANZIAMENTO UNICREDIT	47
-315	10	01.01.010 C/C CARIPARMA SPA	C/C CARIPARMA SPA	47
-316	11	01.01.011 CARTA CREDITO UNICREDIT	CARTA CREDITO UNICREDIT	47
-317	1	01.02.001 CLIENTI C/RIS.(PARTITARIO	CLIENTI C/RIS.(PARTITARIO	48
-319	1	01.03.001 CLI. C/A.C.S.(PARTITARIO)	CLI. C/A.C.S.(PARTITARIO)	49
-320	1	01.04.001 CONTO PARTECIPAZIONI	CONTO PARTECIPAZIONI	50
-321	2	01.04.002 ACCONTI A FORNITORI	ACCONTI A FORNITORI	50
-322	3	01.04.003 ACCREDITI DA RICEVERE	ACCREDITI DA RICEVERE	50
-323	4	01.04.004 FATTURE DA EMETTERE	FATTURE DA EMETTERE	50
-324	5	01.04.005 DEPOSITI CAUZIONI TERZI	DEPOSITI CAUZIONI TERZI	50
-325	6	01.04.006 ERARIO C/INT.RIMB.IMPOSTE	ERARIO C/INT.RIMB.IMPOSTE	50
-326	7	01.04.007 CREDITI V/COMUNE BOLOGNA	CREDITI V/COMUNE BOLOGNA	50
-327	8	01.04.008 CREDITI DIVERSI	CREDITI DIVERSI	50
-328	9	01.04.009 CREDITI V/COMUNE BO C/INT	CREDITI V/COMUNE BO C/INT	50
-329	10	01.04.010 CREDITO IMPOSTA SOSTITUT.	CREDITO IMPOSTA SOSTITUT.	50
-330	11	01.04.011 CREDITI PER RITENUTE	CREDITI PER RITENUTE	50
-331	999	01.04.999 ERARIO C/RITENUTE SUBITE	ERARIO C/RITENUTE SUBITE	50
-332	1	01.05.001 RISCONTI ATTIVI	RISCONTI ATTIVI	51
-333	2	01.05.002 RATEI ATTIVI	RATEI ATTIVI	51
-334	1	01.06.001 IVA C/ACQUISTI	IVA C/ACQUISTI	52
-335	2	01.06.002 IVA A CREDITO	IVA A CREDITO	52
-336	3	01.06.003 IVA RIMBORSO INFRANNUALE	IVA RIMBORSO INFRANNUALE	52
-337	4	01.06.004 IVA RIMBORSO ANNUALE	IVA RIMBORSO ANNUALE	52
-338	5	01.06.005 IRES A CREDITO	IRES A CREDITO	52
-339	6	01.06.006 ERARIO ACCONTI IRES	ERARIO ACCONTI IRES	52
-340	7	01.06.007 IRPEG E ILOR A RIMBORSO	IRPEG E ILOR A RIMBORSO	52
-341	8	01.06.008 R.A. ATTIVE BANCHE	R.A. ATTIVE BANCHE	52
-342	9	01.06.009 IRAP A CREDITO	IRAP A CREDITO	52
-344	11	01.06.011 IVA IN COMPENSAZIONE	IVA IN COMPENSAZIONE	52
-345	12	01.06.012 IVA DEBITO EX ART. 17/TER	IVA DEBITO EX ART. 17/TER	52
-346	1	01.07.001 FABBRICATI AZIENDALI	FABBRICATI AZIENDALI	53
-347	2	01.07.002 IMPIANTI	IMPIANTI	53
-348	3	01.07.003 CALDAIE	CALDAIE	53
-349	4	01.07.004 MEZZI DI SOLLEVAMENTO	MEZZI DI SOLLEVAMENTO	53
-350	5	01.07.005 ATTREZZATURA VARIA	ATTREZZATURA VARIA	53
-351	6	01.07.006 MOBILI E ARREDI	MOBILI E ARREDI	53
-352	7	01.07.007 MACCHINE UFF.ELETTRONICHE	MACCHINE UFF.ELETTRONICHE	53
-353	8	01.07.008 BENI PATR.INFER. euro 516	BENI PATR.INFER. euro 516	53
-354	9	01.07.009 IMMOBIL.IN CORSO E ACCONT	IMMOBIL.IN CORSO E ACCONT	53
-355	10	01.07.010 SOTTOCENTRALI DI SCAMBIO	SOTTOCENTRALI DI SCAMBIO	53
-356	11	01.07.011 RETE DI DISTRIBUZIONE	RETE DI DISTRIBUZIONE	53
-357	12	01.07.012 IMPIANTO COGENERAZIONE	IMPIANTO COGENERAZIONE	53
-358	13	01.07.013 COSTI SOSPESI LEASING	COSTI SOSPESI LEASING	53
-359	14	01.07.014 TERRENI	TERRENI	53
-360	1	01.08.001 SOFTWARE APPLICATIVO	SOFTWARE APPLICATIVO	54
-361	2	01.08.002 MANUT.STRAORD.FABBR.TERZI	MANUT.STRAORD.FABBR.TERZI	54
-362	3	01.08.003 MANUT.STRAORD.BENI PATRIM	MANUT.STRAORD.BENI PATRIM	54
-363	4	01.08.004 SPESE COSTITUZ. IMPIANTI	SPESE COSTITUZ. IMPIANTI	54
-364	5	01.08.005 SPESE ALLACC.TO IMPIANTI	SPESE ALLACC.TO IMPIANTI	54
-365	6	01.08.006 ONERI PLURIENNALI LEASING	ONERI PLURIENNALI LEASING	54
-366	7	01.08.007 ONERI PLURIEN. SU FINANZ.	ONERI PLURIEN. SU FINANZ.	54
-367	8	01.08.008 ONERI  PLUR. LEASING 2015	ONERI  PLUR. LEASING 2015	54
-368	1	01.09.001 UTILE ESERCIZIO	UTILE ESERCIZIO	55
-369	1	01.10.001 CLIENTI DIVERSI	CLIENTI DIVERSI	56
-370	2	01.10.002 CLIENTI CEE	CLIENTI CEE	56
-371	1	01.11.001 MERCI C/RIMANENZE	MERCI C/RIMANENZE	57
-372	1	01.99.001 ARR.TI ATTIVI EURO S.P.	ARR.TI ATTIVI EURO S.P.	58
-373	2	01.99.002 C/TO CONVERSIONE LIRE/EUR	C/TO CONVERSIONE LIRE/EUR	58
-375	2	02.01.002 FORNITORI CEE	FORNITORI CEE	59
-377	1	02.03.001 DIPENDENTI C/RETRIBUZIONI	DIPENDENTI C/RETRIBUZIONI	61
-378	2	02.03.002 DIPEND.C/IST.PREVIDENZIAL	DIPEND.C/IST.PREVIDENZIAL	61
-379	3	02.03.003 DIPENDENTI C/ IRPEF	DIPENDENTI C/ IRPEF	61
-380	4	02.03.004 DIPENDENTI C/ T.F.R.	DIPENDENTI C/ T.F.R.	61
-381	5	02.03.005 DIPEND.C/RETRIB.DIFFERITE	DIPEND.C/RETRIB.DIFFERITE	61
-382	6	02.03.006 CONTRIB.RETRIB.DIFFERITE	CONTRIB.RETRIB.DIFFERITE	61
-383	7	02.03.007 DEBITI RITENUTA TFR	DEBITI RITENUTA TFR	61
-384	8	02.03.008 FONDO ASSISTENZA SANITARI	FONDO ASSISTENZA SANITARI	61
-385	9	02.03.009 DIPENDENTI C/ADDIZIONALI	DIPENDENTI C/ADDIZIONALI	61
-386	1	02.04.001 ACCONTI DA CLIENTI	ACCONTI DA CLIENTI	62
-387	2	02.04.002 NOTE CREDITO DA EMETTERE	NOTE CREDITO DA EMETTERE	62
-388	3	02.04.003 FATTURE DA RICEVERE	FATTURE DA RICEVERE	62
-389	4	02.04.004 CREDITORI VARI	CREDITORI VARI	62
-390	5	02.04.005 QUOTE DA RIMBORSARE	QUOTE DA RIMBORSARE	62
-374	1	02.01.001 FORNITORI ITALIA	FORNITORI ITALIA	59
-391	6	02.04.006 NS.ASSEGNI CIRCOLAZIONE	NS.ASSEGNI CIRCOLAZIONE	62
-392	7	02.04.007 DEBITORI VARI	DEBITORI VARI	62
-620	16	03.01.016 CONSULENZE GME	CONSULENZE GME	71
-393	8	02.04.008 LAVORATORI AUTONOMIC/INPS	LAVORATORI AUTONOMIC/INPS	62
-394	9	02.04.009 LAV.AUT.C/ADDIZ.REGIONALE	LAV.AUT.C/ADDIZ.REGIONALE	62
-395	10	02.04.010 LAV.AUT.C/ADDIZ.COMUNALE	LAV.AUT.C/ADDIZ.COMUNALE	62
-396	11	02.04.011 F/DI MUTUAL. COOPERAZIONE	F/DI MUTUAL. COOPERAZIONE	62
-397	12	02.04.012 FINANZIAMENTO UNICREDIT	FINANZIAMENTO UNICREDIT	62
-398	13	02.04.013 DEBITI VS/COMUNE BOLOGNA	DEBITI VS/COMUNE BOLOGNA	62
-399	14	02.04.014 FINANZIAMENTO CARIPARMA	FINANZIAMENTO CARIPARMA	62
-400	15	02.04.015 CLIENTI ACS RIC.BANCARIE	CLIENTI ACS RIC.BANCARIE	62
-401	1	02.05.001 IVA C/VENDITE	IVA C/VENDITE	63
-402	2	02.05.002 IVA A DEBITO	IVA A DEBITO	63
-403	3	02.05.003 IRES A DEBITO	IRES A DEBITO	63
-404	4	02.05.004 R.A. PASSIVE FORNITORI	R.A. PASSIVE FORNITORI	63
-405	5	02.05.005 IMPOSTE E TASSE VARIE	IMPOSTE E TASSE VARIE	63
-406	6	02.05.006 I.M.U.	I.M.U.	63
-407	7	02.05.007 IRAP A DEBITO	IRAP A DEBITO	63
-408	8	02.05.008 TRANSITO IVA AUTOFATTURA	TRANSITO IVA AUTOFATTURA	63
-409	1	02.06.001 RATEI PASSIVI	RATEI PASSIVI	64
-410	2	02.06.002 RISCONTI PASSIVI	RISCONTI PASSIVI	64
-411	1	02.07.001 F/DO AMM.ORD.FABBR.AZIEND	F/DO AMM.ORD.FABBR.AZIEND	65
-412	2	02.07.002 F/DO AMM.ORD.IMPIANTI	F/DO AMM.ORD.IMPIANTI	65
-413	3	02.07.003 F/DO AMM.ORD.CALDAIE	F/DO AMM.ORD.CALDAIE	65
-414	4	02.07.004 F/DO AMM.ORD.MEZZI SOLLEV	F/DO AMM.ORD.MEZZI SOLLEV	65
-415	5	02.07.005 F/DO AMM.ORD.ATTREZZ.VARI	F/DO AMM.ORD.ATTREZZ.VARI	65
-416	6	02.07.006 F/DO AMM.ORD.MOBILI ARRED	F/DO AMM.ORD.MOBILI ARRED	65
-417	7	02.07.007 F/DO AMM.ORD.MAC.UFF.ELET	F/DO AMM.ORD.MAC.UFF.ELET	65
-418	8	02.07.008 F/DO AMM.BENI PATR.INF.1M	F/DO AMM.BENI PATR.INF.1M	65
-419	9	02.07.009 F/DO AMM.ORD.SOTT.SCAMBIO	F/DO AMM.ORD.SOTT.SCAMBIO	65
-420	10	02.07.010 F/DO AMM.ORD.RETE DISTRIB	F/DO AMM.ORD.RETE DISTRIB	65
-421	1	02.08.001 F/DO AMM.ANT.FABBR.AZIEND	F/DO AMM.ANT.FABBR.AZIEND	66
-422	2	02.08.002 F/DO AMM.ANT.IMPIANTI	F/DO AMM.ANT.IMPIANTI	66
-423	3	02.08.003 F/DO AMM.ANT.CALDAIE	F/DO AMM.ANT.CALDAIE	66
-424	4	02.08.004 F/DO AMM.ANT.MEZZI SOLLEV	F/DO AMM.ANT.MEZZI SOLLEV	66
-425	5	02.08.005 F/DO AMM.ANT.ATTREZ.VARIA	F/DO AMM.ANT.ATTREZ.VARIA	66
-426	6	02.08.006 F/DO AMM.ANT.MOBILI ARRED	F/DO AMM.ANT.MOBILI ARRED	66
-427	7	02.08.007 F/DO AMM.ANT.MAC.UFF.ELET	F/DO AMM.ANT.MAC.UFF.ELET	66
-428	1	02.09.001 F/DO AMM.SOFTWARE APPLIC.	F/DO AMM.SOFTWARE APPLIC.	67
-429	2	02.09.002 F/DO AMM.MAN.ST.IMM.TERZI	F/DO AMM.MAN.ST.IMM.TERZI	67
-430	3	02.09.003 F/DO AMM.MAN.ST.BENI PATR	F/DO AMM.MAN.ST.BENI PATR	67
-431	4	02.09.004 F/DO AMM.SP.COST.IMPIANTI	F/DO AMM.SP.COST.IMPIANTI	67
-432	5	02.09.005 F/DO AMM.SP.ALLACC.IMPIAN	F/DO AMM.SP.ALLACC.IMPIAN	67
-433	6	02.09.006 F/DO AMM.ONERI PLUR.LEASI	F/DO AMM.ONERI PLUR.LEASI	67
-434	7	02.09.007 F/DO AMM.ONERI FINANZIAM.	F/DO AMM.ONERI FINANZIAM.	67
-435	8	02.09.008 F/DO AMM.ONERI LEASING'15	F/DO AMM.ONERI LEASING'15	67
-436	1	02.10.001 F/DO SVALUT.CREDITI ART71	F/DO SVALUT.CREDITI ART71	68
-437	2	02.10.002 F/DO IMPOSTE DIFFERITE	F/DO IMPOSTE DIFFERITE	68
-438	3	02.10.003 F/DO SVAL.CREDITI TASSATI	F/DO SVAL.CREDITI TASSATI	68
-439	1	02.11.001 CAPITALE SOCIALE	CAPITALE SOCIALE	69
-440	2	02.11.002 RISERVA SOPRAVVEN. ART.55	RISERVA SOPRAVVEN. ART.55	69
-441	3	02.11.003 F/DO MUTUALIST. L.904/77	F/DO MUTUALIST. L.904/77	69
-442	4	02.11.004 RISERVA LEGALE	RISERVA LEGALE	69
-443	1	02.99.001 ARR.TI PASSIVI EURO S.P.	ARR.TI PASSIVI EURO S.P.	70
-444	1	03.01.001 GAS METANO	GAS METANO	71
-445	2	03.01.002 CALORE IMPIANTO COGENERAZ	CALORE IMPIANTO COGENERAZ	71
-446	3	03.01.003 ENERGIA ELETTRICA	ENERGIA ELETTRICA	71
-447	4	03.01.004 ACQUA FREDDA	ACQUA FREDDA	71
-448	5	03.01.005 ADDITIVI CHIMICI	ADDITIVI CHIMICI	71
-449	6	03.01.006 CONDUZIONE DELLA CENTRALE	CONDUZIONE DELLA CENTRALE	71
-450	7	03.01.007 CONSULENZE TECNICHE	CONSULENZE TECNICHE	71
-451	8	03.01.008 CONTROLLI U.S.L. E ISPESL	CONTROLLI U.S.L. E ISPESL	71
-452	9	03.01.009 STUDIO PER COGENERAZIONE	STUDIO PER COGENERAZIONE	71
-453	10	03.01.010 COSTI PER BONIFICA	COSTI PER BONIFICA	71
-454	11	03.01.011 MATER. CONSUMO COGENERAT.	MATER. CONSUMO COGENERAT.	71
-455	12	03.01.012 SERVIZIO ENERGIA COGENER.	SERVIZIO ENERGIA COGENER.	71
-456	13	03.01.013 CONSULENZE GESTIONE C.T.	CONSULENZE GESTIONE C.T.	71
-457	14	03.01.014 SPESE VENDITA E.ELETTRICA	SPESE VENDITA E.ELETTRICA	71
-458	15	03.01.015 CONSULENZE GSE	CONSULENZE GSE	71
-459	1	03.02.001 SPESE RAPPRESENTANZA	SPESE RAPPRESENTANZA	72
-460	2	03.02.002 SPESE RAPPRES.INDEDUCIBIL	SPESE RAPPRES.INDEDUCIBIL	72
-461	3	03.02.003 MATERIALE DI CONSUMO	MATERIALE DI CONSUMO	72
-462	4	03.02.004 ABBUONI E SCONTI PASSIVI	ABBUONI E SCONTI PASSIVI	72
-463	5	03.02.005 STANZ.F/DO SVALUT.CREDITI	STANZ.F/DO SVALUT.CREDITI	72
-464	6	03.02.006 RIMB.SPESE AMMINISTRATORI	RIMB.SPESE AMMINISTRATORI	72
-465	7	03.02.007 ARROTOND.PASSIVI EURO	ARROTOND.PASSIVI EURO	72
-466	8	03.02.008 ATTREZZATURE MINUTE	ATTREZZATURE MINUTE	72
-467	9	03.02.009 LETTURA CONTATORI	LETTURA CONTATORI	72
-468	1	03.03.001 COMPENSO AMMINISTRATORI	COMPENSO AMMINISTRATORI	73
-469	2	03.03.002 COMPENSO SINDACI	COMPENSO SINDACI	73
-470	3	03.03.003 COMPENSO ART.30 STATUTO	COMPENSO ART.30 STATUTO	73
-471	4	03.03.004 SPESE LEGALI GIUDIZIARIE	SPESE LEGALI GIUDIZIARIE	73
-472	5	03.03.005 CONSULENZE SERVIZI AMMIN.	CONSULENZE SERVIZI AMMIN.	73
-473	6	03.03.006 DIRITTI MIN.SVILUPPO ECON	DIRITTI MIN.SVILUPPO ECON	73
-474	7	03.03.007 CANCELLERIA E STAMPATI	CANCELLERIA E STAMPATI	73
-475	8	03.03.008 LIBRI E PUBBLICAZIONI	LIBRI E PUBBLICAZIONI	73
-476	9	03.03.009 VALORI BOLLATI E POSTALI	VALORI BOLLATI E POSTALI	73
-477	10	03.03.010 ASSICURAZIONI	ASSICURAZIONI	73
-478	11	03.03.011 VIDIMAZIONE REGISTRI	VIDIMAZIONE REGISTRI	73
-479	12	03.03.012 MULTE AMMENDE SANZIONI	MULTE AMMENDE SANZIONI	73
-480	13	03.03.013 SPESE DI TRASPORTO	SPESE DI TRASPORTO	73
-481	14	03.03.014 SPESE E PERDITE VARIE	SPESE E PERDITE VARIE	73
-482	15	03.03.015 SPESE VARIE INDEDUCIBILI	SPESE VARIE INDEDUCIBILI	73
-483	16	03.03.016 MINUSVALENZE PATRIMONIALI	MINUSVALENZE PATRIMONIALI	73
-484	17	03.03.017 SOPRAVVENIENZE PASSIVE	SOPRAVVENIENZE PASSIVE	73
-485	18	03.03.018 STANZ.RIS.SOPRAVV.ART.55	STANZ.RIS.SOPRAVV.ART.55	73
-486	19	03.03.019 CONSULENZE SOFTWARE	CONSULENZE SOFTWARE	73
-487	20	03.03.020 VITTO E ALLOGGIO	VITTO E ALLOGGIO	73
-488	21	03.03.021 COMPENSI COMMISSIONI SOCI	COMPENSI COMMISSIONI SOCI	73
-489	22	03.03.022 COSTI PER BONIFICAcessato	COSTI PER BONIFICAcessato	73
-490	23	03.03.023 SPESE ADEGUAMENTO STATUTO	SPESE ADEGUAMENTO STATUTO	73
-491	24	03.03.024 CONTRATTO SICUREZZA-IGIEN	CONTRATTO SICUREZZA-IGIEN	73
-492	25	03.03.025 CONTR. ASSISTENZA PRIVACY	CONTR. ASSISTENZA PRIVACY	73
-493	26	03.03.026 DAZI E BOLLA DOGANALE	DAZI E BOLLA DOGANALE	73
-494	27	03.03.027 COSTI PENALI CONTRATTUALI	COSTI PENALI CONTRATTUALI	73
-495	28	03.03.028 SERVIZI BANCARI	SERVIZI BANCARI	73
-496	29	03.03.029 QUOTE ASSOCIATIVE	QUOTE ASSOCIATIVE	73
-497	30	03.03.030 CORSO DI AGGIORNAMENTO	CORSO DI AGGIORNAMENTO	73
-498	31	03.03.031 SPESE INCASSO RIC.BANCARI	SPESE INCASSO RIC.BANCARI	73
-499	1	03.04.001 RETRIBUZ.PERSONALE DIPEND	RETRIBUZ.PERSONALE DIPEND	74
-500	2	03.04.002 CONTRIB.PREVID.CARICO AZ.	CONTRIB.PREVID.CARICO AZ.	74
-501	3	03.04.003 QUOTA T.F.R. DIPENDENTI	QUOTA T.F.R. DIPENDENTI	74
-502	4	03.04.004 QUOTA 13^-14^-FERIE-PERM.	QUOTA 13^-14^-FERIE-PERM.	74
-503	5	03.04.005 CONTR.F/DO ASSIST.SANITAR	CONTR.F/DO ASSIST.SANITAR	74
-505	1	03.05.001 INTERESSI PASSIVI BANCA	INTERESSI PASSIVI BANCA	75
-506	2	03.05.002 INTERESSI PASSIVI COMM.LI	INTERESSI PASSIVI COMM.LI	75
-507	3	03.05.003 ONERI BANCARI	ONERI BANCARI	75
-508	4	03.05.004 SPESE PER FIDEJUSSIONI	SPESE PER FIDEJUSSIONI	75
-509	5	03.05.005 INTERESSI PASSIVI INDEDUC	INTERESSI PASSIVI INDEDUC	75
-510	6	03.05.006 CANONE MENSILE LEASING	CANONE MENSILE LEASING	75
-511	7	03.05.007 INTERESSI PASSIVI ERARIO	INTERESSI PASSIVI ERARIO	75
-512	8	03.05.008 INTERESSI PASSIVI FINANZ.	INTERESSI PASSIVI FINANZ.	75
-513	1	03.06.001 ONERI FISCALI DEDUCIBILI	ONERI FISCALI DEDUCIBILI	76
-514	2	03.06.002 ONERI FISCALI INDEDUCIBIL	ONERI FISCALI INDEDUCIBIL	76
-515	3	03.06.003 ADEMPIMENTI SOCIETARI	ADEMPIMENTI SOCIETARI	76
-516	4	03.06.004 TRIBUTI LOCALI VARI	TRIBUTI LOCALI VARI	76
-517	5	03.06.005 IVA INDEDUCIBILE	IVA INDEDUCIBILE	76
-518	6	03.06.006 IVA INDETRAIBILE DEDUCIB.	IVA INDETRAIBILE DEDUCIB.	76
-519	7	03.06.007 IMPOSTE ES.PREC.DEDUCIBIL	IMPOSTE ES.PREC.DEDUCIBIL	76
-520	8	03.06.008 IMPOSTE ES.PREC.INDEDUCIB	IMPOSTE ES.PREC.INDEDUCIB	76
-521	9	03.06.009 IRES ESERCIZIO CORRENTE	IRES ESERCIZIO CORRENTE	76
-522	10	03.06.010 IRPEG DIFFERITA	IRPEG DIFFERITA	76
-523	11	03.06.011 IRPEG ANTICIPATA	IRPEG ANTICIPATA	76
-524	12	03.06.012 IRAP ESERCIZIO CORRENTE	IRAP ESERCIZIO CORRENTE	76
-525	13	03.06.013 I.M.U.	I.M.U.	76
-526	14	03.06.014 CONTRIB.INPS LAVOR.AUTON.	CONTRIB.INPS LAVOR.AUTON.	76
-527	1	03.07.001 SPESE TELEFONICHE	SPESE TELEFONICHE	77
-528	2	03.07.002 GESTIONE AREA VERDE	GESTIONE AREA VERDE	77
-529	3	03.07.003 NOLEGGIO SALA X ASSEMBLEA	NOLEGGIO SALA X ASSEMBLEA	77
-530	4	03.07.004 CONTR.PULIZIA LOCALI UFF.	CONTR.PULIZIA LOCALI UFF.	77
-531	5	03.07.005 SPESE CONDOMINIALI	SPESE CONDOMINIALI	77
-532	1	03.08.001 MANUT.ORD.FABBR.AZIENDALI	MANUT.ORD.FABBR.AZIENDALI	78
-533	2	03.08.002 MANUT.ORDIN.IMPIANTI	MANUT.ORDIN.IMPIANTI	78
-534	3	03.08.003 MAN.ORD.AREA VERDEcessato	MAN.ORD.AREA VERDEcessato	78
-535	4	03.08.004 MANUT.ORD.BENI PATRIM.VAR	MANUT.ORD.BENI PATRIM.VAR	78
-536	5	03.08.005 CONTR.ASS.MACCHINE UFFICI	CONTR.ASS.MACCHINE UFFICI	78
-537	6	03.08.006 CONTR.ASSISTENZA SOFTWARE	CONTR.ASSISTENZA SOFTWARE	78
-538	7	03.08.007 MANUT.ORDIN.CALDAIE	MANUT.ORDIN.CALDAIE	78
-539	8	03.08.008 COSTI PER BONIFICAcessato	COSTI PER BONIFICAcessato	78
-540	9	03.08.009 MAN.ORD. SOTT.LI SCAMBIO	MAN.ORD. SOTT.LI SCAMBIO	78
-541	10	03.08.010 MAN. ORD.RETE DISTRIBUZ.	MAN. ORD.RETE DISTRIBUZ.	78
-542	11	03.08.011 MANUT. BENI TERZI	MANUT. BENI TERZI	78
-543	12	03.08.012 MESSA A NORMA FABBRICATO	MESSA A NORMA FABBRICATO	78
-544	13	03.08.013 MANUTENZ.MACCHINE UFFICIO	MANUTENZ.MACCHINE UFFICIO	78
-545	14	03.08.014 MESSA NORMA SOTTOCENTRALI	MESSA NORMA SOTTOCENTRALI	78
-546	15	03.08.015 CONTRATTO MANUT. IMPIANTI	CONTRATTO MANUT. IMPIANTI	78
-547	16	03.08.016 CONTRATTO MANUT.COGENERAT	CONTRATTO MANUT.COGENERAT	78
-548	17	03.08.017 CONTR.ASS.MEZZI SOLLEVAM.	CONTR.ASS.MEZZI SOLLEVAM.	78
-549	1	03.09.001 AMMORT.ORD.FABBR.AZIENDA	AMMORT.ORD.FABBR.AZIENDA	79
-550	2	03.09.002 AMMORT.ORDINARIO IMPIANTI	AMMORT.ORDINARIO IMPIANTI	79
-551	3	03.09.003 AMMORT.ORDINARIO CALDAIE	AMMORT.ORDINARIO CALDAIE	79
-552	4	03.09.004 AMMORT.ORD.MEZZI SOLLEVAM	AMMORT.ORD.MEZZI SOLLEVAM	79
-553	5	03.09.005 AMMORT.ORD.ATTREZZ.VARIA	AMMORT.ORD.ATTREZZ.VARIA	79
-554	6	03.09.006 AMMORT.ORD.MOBILI ARREDI	AMMORT.ORD.MOBILI ARREDI	79
-555	7	03.09.007 AMM.ORD.MACCH.UFF.ELETTR.	AMM.ORD.MACCH.UFF.ELETTR.	79
-556	8	03.09.008 AMM.BENI PATRIM.INF.1 M.	AMM.BENI PATRIM.INF.1 M.	79
-557	9	03.09.009 AMMORT.ORD. SOTTOCENTRALI	AMMORT.ORD. SOTTOCENTRALI	79
-558	10	03.09.010 AMM.ORD.RETE DISTRIBUZION	AMM.ORD.RETE DISTRIBUZION	79
-559	1	03.10.001 AMMORT.ANT.FABBR.AZIENDA	AMMORT.ANT.FABBR.AZIENDA	80
-560	2	03.10.002 AMMORT.ANTIC. IMPIANTI	AMMORT.ANTIC. IMPIANTI	80
-561	3	03.10.003 AMMORT.ANTIC. CALDAIE	AMMORT.ANTIC. CALDAIE	80
-562	4	03.10.004 AMMORT.ANTIC.MEZZI SOLLEV	AMMORT.ANTIC.MEZZI SOLLEV	80
-563	5	03.10.005 AMMORT.ANT.ATTREZZ.VARIA	AMMORT.ANT.ATTREZZ.VARIA	80
-564	6	03.10.006 AMMORT.ANT.MOBILI ARREDI	AMMORT.ANT.MOBILI ARREDI	80
-565	7	03.10.007 AMM.ANT.MACCH.UFF.ELETTR.	AMM.ANT.MACCH.UFF.ELETTR.	80
-566	1	03.11.001 AMMORT.SOFTWARE APPLICAT.	AMMORT.SOFTWARE APPLICAT.	81
-567	2	03.11.002 AMM.MAN.STR.FABBR.TERZI	AMM.MAN.STR.FABBR.TERZI	81
-568	3	03.11.003 AMM.MAN.STR.BENI PATRIMON	AMM.MAN.STR.BENI PATRIMON	81
-569	4	03.11.004 AMM.SPESE COSTIT.IMPIANTI	AMM.SPESE COSTIT.IMPIANTI	81
-570	5	03.11.005 AMM.SPESE ALLACC.IMPIANTI	AMM.SPESE ALLACC.IMPIANTI	81
-571	6	03.11.006 AMM.ONERI PLUR.LEASING'15	AMM.ONERI PLUR.LEASING'15	81
-572	7	03.11.007 AMM.ONERI PLUR.LI.FINANZ.	AMM.ONERI PLUR.LI.FINANZ.	81
-573	8	03.11.008 AMM.ONERI PLUR.LI LEASING	AMM.ONERI PLUR.LI LEASING	81
-574	1	03.12.001 MERCI C/RIMANENZE INIZIAL	MERCI C/RIMANENZE INIZIAL	82
-575	1	03.99.001 ARR.TI PASSIVI EURO C.E.	ARR.TI PASSIVI EURO C.E.	83
-576	1	04.01.001 RICAVI IN C/RISCALDAMENTO	RICAVI IN C/RISCALDAMENTO	84
-577	2	04.01.002 ACCREDITI A CONGUAGLIO	ACCREDITI A CONGUAGLIO	84
-578	3	04.01.003 ADDEBITI A CONGUAGLIO	ADDEBITI A CONGUAGLIO	84
-579	4	04.01.004 RECUPERO ACQUA CALDA	RECUPERO ACQUA CALDA	84
-580	5	04.01.005 VENDITA CEE	VENDITA CEE	84
-581	6	04.01.006 RECUPERO SPESE COGENERAZI	RECUPERO SPESE COGENERAZI	84
-582	7	04.01.007 VENDITA ENERGIA ELETTRICA	VENDITA ENERGIA ELETTRICA	84
-583	1	04.02.001 INTERESSI ATTIVI BANCA CC	INTERESSI ATTIVI BANCA CC	85
-584	2	04.02.002 INTERESSI ATTIVI POSTA CC	INTERESSI ATTIVI POSTA CC	85
-585	3	04.02.003 INTERESSI ATT.COMMERCIALI	INTERESSI ATT.COMMERCIALI	85
-586	4	04.02.004 INT.ATT. RIMBORSI IMPOSTA	INT.ATT. RIMBORSI IMPOSTA	85
-587	5	04.02.005 INT.C/DEPOSITI CAUZIONALI	INT.C/DEPOSITI CAUZIONALI	85
-588	1	04.03.001 RECUPERO SPESE DI BANCA	RECUPERO SPESE DI BANCA	86
-589	2	04.03.002 RECUPERI E PROVENTI VARI	RECUPERI E PROVENTI VARI	86
-590	3	04.03.003 RIMB.DANNI ASSICURAZIONE	RIMB.DANNI ASSICURAZIONE	86
-591	4	04.03.004 VENDITA BENI PATRIMONIALI	VENDITA BENI PATRIMONIALI	86
-592	5	04.03.005 PLUSVALENZE PATRIMONIALI	PLUSVALENZE PATRIMONIALI	86
-593	6	04.03.006 SOPRAVVENIENZE ATTIVE	SOPRAVVENIENZE ATTIVE	86
-594	7	04.03.007 ABBUONI E SCONTI ATTIVI	ABBUONI E SCONTI ATTIVI	86
-595	8	04.03.008 SOPRAVV.CONTR.ART.55	SOPRAVV.CONTR.ART.55	86
-596	9	04.03.009 IRPEG DIFFERITA	IRPEG DIFFERITA	86
-597	10	04.03.010 PROVENTI STRAORDINARI	PROVENTI STRAORDINARI	86
-598	11	04.03.011 ARROTOND.ATTIVI EURO	ARROTOND.ATTIVI EURO	86
-599	12	04.03.012 CONTR.CERTIFICATI BIANCHI	CONTR.CERTIFICATI BIANCHI	86
-600	1	04.04.001 MERCI C/RIMANENZE FINALI	MERCI C/RIMANENZE FINALI	87
-601	1	04.99.001 ARR.TI ATTIVI EURO C.E.	ARR.TI ATTIVI EURO C.E.	88
-602	1	05.01.001 FIDEJUSSIONI E AVALLI	FIDEJUSSIONI E AVALLI	89
-603	2	05.01.002 ACCREDITO CONTI D'ORDINE	ACCREDITO CONTI D'ORDINE	89
-604	3	05.01.003 RISCHI CANONI LEASING	RISCHI CANONI LEASING	89
-605	1	05.02.001 BILANCIO DI APERTURA	BILANCIO DI APERTURA	90
-606	2	05.02.002 BILANCIO DI CHIUSURA	BILANCIO DI CHIUSURA	90
-607	3	05.02.003 PERDITE PROFITTI GENERALI	PERDITE PROFITTI GENERALI	90
-318	2	01.02.002 CLIENTI ITALIA	CLIENTI ITALIA	48
-343	10	01.06.010 ERARIO C/IVA	ERARIO C/IVA	52
-504	6	03.04.006 ARROTONDAMENTI PAGHE	ARROTONDAMENTI PAGHE	74
-608	4	05.02.004 TRANSITO RA	TRANSITO RA	90
-609	5	05.02.005 TRANSITO RC	TRANSITO RC	90
-610	6	05.02.006 TRANSITO VALUTA	TRANSITO VALUTA	90
-621	11	02.03.011 INAIL	INAIL	61
-613	9	02.05.009 IVA C/LIQUIDAZIONE	IVA C/LIQUIDAZIONE	63
-307	2	01.01.002 ASSEGNI IN CASSA	ASSEGNI IN CASSA	47
-614	7	05.02.007 RIPRESA SALDI APERTURA	RIPRESA SALDI APERTURA	90
-376	1	02.02.001 FORNITORI(LAV.AUTONOMO)	FORNITORI(LAV.AUTONOMO)	60
-615	10	02.03.010 CREDITO ART. 1 DL 66/2014	CREDITO ART. 1 DL 66/2014	61
-616	18	03.08.018 MANUTENZIONE COGENERATORE	MANUTENZIONE COGENERATORE	78
-617	12	01.01.012 INTERESSI BANCARI	INTERESSI BANCARI	47
-618	4	02.10.004 F/DO MANUTENZIONI CICLICHE	F/DO MANUTENZIONI CICLICHE	68
-619	6	03.07.006 CONTR. NOLEGGIO STAMPANTE	CONTR. NOLEGGIO STAMPANTE	77
-622	15	01.07.015 CONTABILIZZAZIONE	CONTABILIZZAZIONE	53
+COPY public.conto (id, codice, nome, descrizione, sottomastro_id, contocee_id, saldo) FROM stdin;
+306	1	01.01.001 DENARO E VALORI IN CASSA	DENARO E VALORI IN CASSA	47	\N	\N
+308	3	01.01.003 C/C UNICREDIT BANCA SPA	C/C UNICREDIT BANCA SPA	47	\N	\N
+309	4	01.01.004 C/C POSTALE	C/C POSTALE	47	\N	\N
+310	5	01.01.005 C/C EMILBANCA-CR.COOPERAT	C/C EMILBANCA-CR.COOPERAT	47	\N	\N
+311	6	01.01.006 RICEVUTE BANCARIE ATTIVE	RICEVUTE BANCARIE ATTIVE	47	\N	\N
+312	7	01.01.007 R.BANCARIE ALL'INCASSO	R.BANCARIE ALL'INCASSO	47	\N	\N
+313	8	01.01.008 C/C FIDO EMILBANCA	C/C FIDO EMILBANCA	47	\N	\N
+314	9	01.01.009 FINANZIAMENTO UNICREDIT	FINANZIAMENTO UNICREDIT	47	\N	\N
+315	10	01.01.010 C/C CARIPARMA SPA	C/C CARIPARMA SPA	47	\N	\N
+316	11	01.01.011 CARTA CREDITO UNICREDIT	CARTA CREDITO UNICREDIT	47	\N	\N
+317	1	01.02.001 CLIENTI C/RIS.(PARTITARIO	CLIENTI C/RIS.(PARTITARIO	48	\N	\N
+319	1	01.03.001 CLI. C/A.C.S.(PARTITARIO)	CLI. C/A.C.S.(PARTITARIO)	49	\N	\N
+320	1	01.04.001 CONTO PARTECIPAZIONI	CONTO PARTECIPAZIONI	50	\N	\N
+321	2	01.04.002 ACCONTI A FORNITORI	ACCONTI A FORNITORI	50	\N	\N
+322	3	01.04.003 ACCREDITI DA RICEVERE	ACCREDITI DA RICEVERE	50	\N	\N
+323	4	01.04.004 FATTURE DA EMETTERE	FATTURE DA EMETTERE	50	\N	\N
+324	5	01.04.005 DEPOSITI CAUZIONI TERZI	DEPOSITI CAUZIONI TERZI	50	\N	\N
+325	6	01.04.006 ERARIO C/INT.RIMB.IMPOSTE	ERARIO C/INT.RIMB.IMPOSTE	50	\N	\N
+326	7	01.04.007 CREDITI V/COMUNE BOLOGNA	CREDITI V/COMUNE BOLOGNA	50	\N	\N
+327	8	01.04.008 CREDITI DIVERSI	CREDITI DIVERSI	50	\N	\N
+328	9	01.04.009 CREDITI V/COMUNE BO C/INT	CREDITI V/COMUNE BO C/INT	50	\N	\N
+329	10	01.04.010 CREDITO IMPOSTA SOSTITUT.	CREDITO IMPOSTA SOSTITUT.	50	\N	\N
+330	11	01.04.011 CREDITI PER RITENUTE	CREDITI PER RITENUTE	50	\N	\N
+331	999	01.04.999 ERARIO C/RITENUTE SUBITE	ERARIO C/RITENUTE SUBITE	50	\N	\N
+332	1	01.05.001 RISCONTI ATTIVI	RISCONTI ATTIVI	51	\N	\N
+333	2	01.05.002 RATEI ATTIVI	RATEI ATTIVI	51	\N	\N
+334	1	01.06.001 IVA C/ACQUISTI	IVA C/ACQUISTI	52	\N	\N
+335	2	01.06.002 IVA A CREDITO	IVA A CREDITO	52	\N	\N
+336	3	01.06.003 IVA RIMBORSO INFRANNUALE	IVA RIMBORSO INFRANNUALE	52	\N	\N
+337	4	01.06.004 IVA RIMBORSO ANNUALE	IVA RIMBORSO ANNUALE	52	\N	\N
+338	5	01.06.005 IRES A CREDITO	IRES A CREDITO	52	\N	\N
+339	6	01.06.006 ERARIO ACCONTI IRES	ERARIO ACCONTI IRES	52	\N	\N
+340	7	01.06.007 IRPEG E ILOR A RIMBORSO	IRPEG E ILOR A RIMBORSO	52	\N	\N
+341	8	01.06.008 R.A. ATTIVE BANCHE	R.A. ATTIVE BANCHE	52	\N	\N
+342	9	01.06.009 IRAP A CREDITO	IRAP A CREDITO	52	\N	\N
+344	11	01.06.011 IVA IN COMPENSAZIONE	IVA IN COMPENSAZIONE	52	\N	\N
+345	12	01.06.012 IVA DEBITO EX ART. 17/TER	IVA DEBITO EX ART. 17/TER	52	\N	\N
+346	1	01.07.001 FABBRICATI AZIENDALI	FABBRICATI AZIENDALI	53	\N	\N
+347	2	01.07.002 IMPIANTI	IMPIANTI	53	\N	\N
+348	3	01.07.003 CALDAIE	CALDAIE	53	\N	\N
+349	4	01.07.004 MEZZI DI SOLLEVAMENTO	MEZZI DI SOLLEVAMENTO	53	\N	\N
+350	5	01.07.005 ATTREZZATURA VARIA	ATTREZZATURA VARIA	53	\N	\N
+351	6	01.07.006 MOBILI E ARREDI	MOBILI E ARREDI	53	\N	\N
+352	7	01.07.007 MACCHINE UFF.ELETTRONICHE	MACCHINE UFF.ELETTRONICHE	53	\N	\N
+353	8	01.07.008 BENI PATR.INFER. euro 516	BENI PATR.INFER. euro 516	53	\N	\N
+354	9	01.07.009 IMMOBIL.IN CORSO E ACCONT	IMMOBIL.IN CORSO E ACCONT	53	\N	\N
+355	10	01.07.010 SOTTOCENTRALI DI SCAMBIO	SOTTOCENTRALI DI SCAMBIO	53	\N	\N
+356	11	01.07.011 RETE DI DISTRIBUZIONE	RETE DI DISTRIBUZIONE	53	\N	\N
+357	12	01.07.012 IMPIANTO COGENERAZIONE	IMPIANTO COGENERAZIONE	53	\N	\N
+358	13	01.07.013 COSTI SOSPESI LEASING	COSTI SOSPESI LEASING	53	\N	\N
+359	14	01.07.014 TERRENI	TERRENI	53	\N	\N
+360	1	01.08.001 SOFTWARE APPLICATIVO	SOFTWARE APPLICATIVO	54	\N	\N
+361	2	01.08.002 MANUT.STRAORD.FABBR.TERZI	MANUT.STRAORD.FABBR.TERZI	54	\N	\N
+362	3	01.08.003 MANUT.STRAORD.BENI PATRIM	MANUT.STRAORD.BENI PATRIM	54	\N	\N
+363	4	01.08.004 SPESE COSTITUZ. IMPIANTI	SPESE COSTITUZ. IMPIANTI	54	\N	\N
+364	5	01.08.005 SPESE ALLACC.TO IMPIANTI	SPESE ALLACC.TO IMPIANTI	54	\N	\N
+365	6	01.08.006 ONERI PLURIENNALI LEASING	ONERI PLURIENNALI LEASING	54	\N	\N
+366	7	01.08.007 ONERI PLURIEN. SU FINANZ.	ONERI PLURIEN. SU FINANZ.	54	\N	\N
+367	8	01.08.008 ONERI  PLUR. LEASING 2015	ONERI  PLUR. LEASING 2015	54	\N	\N
+368	1	01.09.001 UTILE ESERCIZIO	UTILE ESERCIZIO	55	\N	\N
+369	1	01.10.001 CLIENTI DIVERSI	CLIENTI DIVERSI	56	\N	\N
+370	2	01.10.002 CLIENTI CEE	CLIENTI CEE	56	\N	\N
+371	1	01.11.001 MERCI C/RIMANENZE	MERCI C/RIMANENZE	57	\N	\N
+372	1	01.99.001 ARR.TI ATTIVI EURO S.P.	ARR.TI ATTIVI EURO S.P.	58	\N	\N
+373	2	01.99.002 C/TO CONVERSIONE LIRE/EUR	C/TO CONVERSIONE LIRE/EUR	58	\N	\N
+375	2	02.01.002 FORNITORI CEE	FORNITORI CEE	59	\N	\N
+377	1	02.03.001 DIPENDENTI C/RETRIBUZIONI	DIPENDENTI C/RETRIBUZIONI	61	\N	\N
+378	2	02.03.002 DIPEND.C/IST.PREVIDENZIAL	DIPEND.C/IST.PREVIDENZIAL	61	\N	\N
+379	3	02.03.003 DIPENDENTI C/ IRPEF	DIPENDENTI C/ IRPEF	61	\N	\N
+380	4	02.03.004 DIPENDENTI C/ T.F.R.	DIPENDENTI C/ T.F.R.	61	\N	\N
+381	5	02.03.005 DIPEND.C/RETRIB.DIFFERITE	DIPEND.C/RETRIB.DIFFERITE	61	\N	\N
+382	6	02.03.006 CONTRIB.RETRIB.DIFFERITE	CONTRIB.RETRIB.DIFFERITE	61	\N	\N
+383	7	02.03.007 DEBITI RITENUTA TFR	DEBITI RITENUTA TFR	61	\N	\N
+384	8	02.03.008 FONDO ASSISTENZA SANITARI	FONDO ASSISTENZA SANITARI	61	\N	\N
+385	9	02.03.009 DIPENDENTI C/ADDIZIONALI	DIPENDENTI C/ADDIZIONALI	61	\N	\N
+386	1	02.04.001 ACCONTI DA CLIENTI	ACCONTI DA CLIENTI	62	\N	\N
+387	2	02.04.002 NOTE CREDITO DA EMETTERE	NOTE CREDITO DA EMETTERE	62	\N	\N
+388	3	02.04.003 FATTURE DA RICEVERE	FATTURE DA RICEVERE	62	\N	\N
+389	4	02.04.004 CREDITORI VARI	CREDITORI VARI	62	\N	\N
+390	5	02.04.005 QUOTE DA RIMBORSARE	QUOTE DA RIMBORSARE	62	\N	\N
+374	1	02.01.001 FORNITORI ITALIA	FORNITORI ITALIA	59	\N	\N
+391	6	02.04.006 NS.ASSEGNI CIRCOLAZIONE	NS.ASSEGNI CIRCOLAZIONE	62	\N	\N
+392	7	02.04.007 DEBITORI VARI	DEBITORI VARI	62	\N	\N
+620	16	03.01.016 CONSULENZE GME	CONSULENZE GME	71	\N	\N
+393	8	02.04.008 LAVORATORI AUTONOMIC/INPS	LAVORATORI AUTONOMIC/INPS	62	\N	\N
+394	9	02.04.009 LAV.AUT.C/ADDIZ.REGIONALE	LAV.AUT.C/ADDIZ.REGIONALE	62	\N	\N
+395	10	02.04.010 LAV.AUT.C/ADDIZ.COMUNALE	LAV.AUT.C/ADDIZ.COMUNALE	62	\N	\N
+396	11	02.04.011 F/DI MUTUAL. COOPERAZIONE	F/DI MUTUAL. COOPERAZIONE	62	\N	\N
+397	12	02.04.012 FINANZIAMENTO UNICREDIT	FINANZIAMENTO UNICREDIT	62	\N	\N
+398	13	02.04.013 DEBITI VS/COMUNE BOLOGNA	DEBITI VS/COMUNE BOLOGNA	62	\N	\N
+399	14	02.04.014 FINANZIAMENTO CARIPARMA	FINANZIAMENTO CARIPARMA	62	\N	\N
+400	15	02.04.015 CLIENTI ACS RIC.BANCARIE	CLIENTI ACS RIC.BANCARIE	62	\N	\N
+401	1	02.05.001 IVA C/VENDITE	IVA C/VENDITE	63	\N	\N
+402	2	02.05.002 IVA A DEBITO	IVA A DEBITO	63	\N	\N
+403	3	02.05.003 IRES A DEBITO	IRES A DEBITO	63	\N	\N
+404	4	02.05.004 R.A. PASSIVE FORNITORI	R.A. PASSIVE FORNITORI	63	\N	\N
+405	5	02.05.005 IMPOSTE E TASSE VARIE	IMPOSTE E TASSE VARIE	63	\N	\N
+406	6	02.05.006 I.M.U.	I.M.U.	63	\N	\N
+407	7	02.05.007 IRAP A DEBITO	IRAP A DEBITO	63	\N	\N
+408	8	02.05.008 TRANSITO IVA AUTOFATTURA	TRANSITO IVA AUTOFATTURA	63	\N	\N
+409	1	02.06.001 RATEI PASSIVI	RATEI PASSIVI	64	\N	\N
+410	2	02.06.002 RISCONTI PASSIVI	RISCONTI PASSIVI	64	\N	\N
+411	1	02.07.001 F/DO AMM.ORD.FABBR.AZIEND	F/DO AMM.ORD.FABBR.AZIEND	65	\N	\N
+412	2	02.07.002 F/DO AMM.ORD.IMPIANTI	F/DO AMM.ORD.IMPIANTI	65	\N	\N
+413	3	02.07.003 F/DO AMM.ORD.CALDAIE	F/DO AMM.ORD.CALDAIE	65	\N	\N
+414	4	02.07.004 F/DO AMM.ORD.MEZZI SOLLEV	F/DO AMM.ORD.MEZZI SOLLEV	65	\N	\N
+415	5	02.07.005 F/DO AMM.ORD.ATTREZZ.VARI	F/DO AMM.ORD.ATTREZZ.VARI	65	\N	\N
+416	6	02.07.006 F/DO AMM.ORD.MOBILI ARRED	F/DO AMM.ORD.MOBILI ARRED	65	\N	\N
+417	7	02.07.007 F/DO AMM.ORD.MAC.UFF.ELET	F/DO AMM.ORD.MAC.UFF.ELET	65	\N	\N
+418	8	02.07.008 F/DO AMM.BENI PATR.INF.1M	F/DO AMM.BENI PATR.INF.1M	65	\N	\N
+419	9	02.07.009 F/DO AMM.ORD.SOTT.SCAMBIO	F/DO AMM.ORD.SOTT.SCAMBIO	65	\N	\N
+420	10	02.07.010 F/DO AMM.ORD.RETE DISTRIB	F/DO AMM.ORD.RETE DISTRIB	65	\N	\N
+421	1	02.08.001 F/DO AMM.ANT.FABBR.AZIEND	F/DO AMM.ANT.FABBR.AZIEND	66	\N	\N
+422	2	02.08.002 F/DO AMM.ANT.IMPIANTI	F/DO AMM.ANT.IMPIANTI	66	\N	\N
+423	3	02.08.003 F/DO AMM.ANT.CALDAIE	F/DO AMM.ANT.CALDAIE	66	\N	\N
+424	4	02.08.004 F/DO AMM.ANT.MEZZI SOLLEV	F/DO AMM.ANT.MEZZI SOLLEV	66	\N	\N
+425	5	02.08.005 F/DO AMM.ANT.ATTREZ.VARIA	F/DO AMM.ANT.ATTREZ.VARIA	66	\N	\N
+426	6	02.08.006 F/DO AMM.ANT.MOBILI ARRED	F/DO AMM.ANT.MOBILI ARRED	66	\N	\N
+427	7	02.08.007 F/DO AMM.ANT.MAC.UFF.ELET	F/DO AMM.ANT.MAC.UFF.ELET	66	\N	\N
+428	1	02.09.001 F/DO AMM.SOFTWARE APPLIC.	F/DO AMM.SOFTWARE APPLIC.	67	\N	\N
+429	2	02.09.002 F/DO AMM.MAN.ST.IMM.TERZI	F/DO AMM.MAN.ST.IMM.TERZI	67	\N	\N
+430	3	02.09.003 F/DO AMM.MAN.ST.BENI PATR	F/DO AMM.MAN.ST.BENI PATR	67	\N	\N
+431	4	02.09.004 F/DO AMM.SP.COST.IMPIANTI	F/DO AMM.SP.COST.IMPIANTI	67	\N	\N
+432	5	02.09.005 F/DO AMM.SP.ALLACC.IMPIAN	F/DO AMM.SP.ALLACC.IMPIAN	67	\N	\N
+433	6	02.09.006 F/DO AMM.ONERI PLUR.LEASI	F/DO AMM.ONERI PLUR.LEASI	67	\N	\N
+434	7	02.09.007 F/DO AMM.ONERI FINANZIAM.	F/DO AMM.ONERI FINANZIAM.	67	\N	\N
+435	8	02.09.008 F/DO AMM.ONERI LEASING'15	F/DO AMM.ONERI LEASING'15	67	\N	\N
+436	1	02.10.001 F/DO SVALUT.CREDITI ART71	F/DO SVALUT.CREDITI ART71	68	\N	\N
+437	2	02.10.002 F/DO IMPOSTE DIFFERITE	F/DO IMPOSTE DIFFERITE	68	\N	\N
+438	3	02.10.003 F/DO SVAL.CREDITI TASSATI	F/DO SVAL.CREDITI TASSATI	68	\N	\N
+439	1	02.11.001 CAPITALE SOCIALE	CAPITALE SOCIALE	69	\N	\N
+440	2	02.11.002 RISERVA SOPRAVVEN. ART.55	RISERVA SOPRAVVEN. ART.55	69	\N	\N
+441	3	02.11.003 F/DO MUTUALIST. L.904/77	F/DO MUTUALIST. L.904/77	69	\N	\N
+442	4	02.11.004 RISERVA LEGALE	RISERVA LEGALE	69	\N	\N
+443	1	02.99.001 ARR.TI PASSIVI EURO S.P.	ARR.TI PASSIVI EURO S.P.	70	\N	\N
+444	1	03.01.001 GAS METANO	GAS METANO	71	\N	\N
+445	2	03.01.002 CALORE IMPIANTO COGENERAZ	CALORE IMPIANTO COGENERAZ	71	\N	\N
+446	3	03.01.003 ENERGIA ELETTRICA	ENERGIA ELETTRICA	71	\N	\N
+447	4	03.01.004 ACQUA FREDDA	ACQUA FREDDA	71	\N	\N
+448	5	03.01.005 ADDITIVI CHIMICI	ADDITIVI CHIMICI	71	\N	\N
+449	6	03.01.006 CONDUZIONE DELLA CENTRALE	CONDUZIONE DELLA CENTRALE	71	\N	\N
+450	7	03.01.007 CONSULENZE TECNICHE	CONSULENZE TECNICHE	71	\N	\N
+451	8	03.01.008 CONTROLLI U.S.L. E ISPESL	CONTROLLI U.S.L. E ISPESL	71	\N	\N
+452	9	03.01.009 STUDIO PER COGENERAZIONE	STUDIO PER COGENERAZIONE	71	\N	\N
+453	10	03.01.010 COSTI PER BONIFICA	COSTI PER BONIFICA	71	\N	\N
+454	11	03.01.011 MATER. CONSUMO COGENERAT.	MATER. CONSUMO COGENERAT.	71	\N	\N
+455	12	03.01.012 SERVIZIO ENERGIA COGENER.	SERVIZIO ENERGIA COGENER.	71	\N	\N
+456	13	03.01.013 CONSULENZE GESTIONE C.T.	CONSULENZE GESTIONE C.T.	71	\N	\N
+457	14	03.01.014 SPESE VENDITA E.ELETTRICA	SPESE VENDITA E.ELETTRICA	71	\N	\N
+458	15	03.01.015 CONSULENZE GSE	CONSULENZE GSE	71	\N	\N
+459	1	03.02.001 SPESE RAPPRESENTANZA	SPESE RAPPRESENTANZA	72	\N	\N
+460	2	03.02.002 SPESE RAPPRES.INDEDUCIBIL	SPESE RAPPRES.INDEDUCIBIL	72	\N	\N
+461	3	03.02.003 MATERIALE DI CONSUMO	MATERIALE DI CONSUMO	72	\N	\N
+462	4	03.02.004 ABBUONI E SCONTI PASSIVI	ABBUONI E SCONTI PASSIVI	72	\N	\N
+463	5	03.02.005 STANZ.F/DO SVALUT.CREDITI	STANZ.F/DO SVALUT.CREDITI	72	\N	\N
+464	6	03.02.006 RIMB.SPESE AMMINISTRATORI	RIMB.SPESE AMMINISTRATORI	72	\N	\N
+465	7	03.02.007 ARROTOND.PASSIVI EURO	ARROTOND.PASSIVI EURO	72	\N	\N
+466	8	03.02.008 ATTREZZATURE MINUTE	ATTREZZATURE MINUTE	72	\N	\N
+467	9	03.02.009 LETTURA CONTATORI	LETTURA CONTATORI	72	\N	\N
+468	1	03.03.001 COMPENSO AMMINISTRATORI	COMPENSO AMMINISTRATORI	73	\N	\N
+469	2	03.03.002 COMPENSO SINDACI	COMPENSO SINDACI	73	\N	\N
+470	3	03.03.003 COMPENSO ART.30 STATUTO	COMPENSO ART.30 STATUTO	73	\N	\N
+471	4	03.03.004 SPESE LEGALI GIUDIZIARIE	SPESE LEGALI GIUDIZIARIE	73	\N	\N
+472	5	03.03.005 CONSULENZE SERVIZI AMMIN.	CONSULENZE SERVIZI AMMIN.	73	\N	\N
+473	6	03.03.006 DIRITTI MIN.SVILUPPO ECON	DIRITTI MIN.SVILUPPO ECON	73	\N	\N
+474	7	03.03.007 CANCELLERIA E STAMPATI	CANCELLERIA E STAMPATI	73	\N	\N
+475	8	03.03.008 LIBRI E PUBBLICAZIONI	LIBRI E PUBBLICAZIONI	73	\N	\N
+476	9	03.03.009 VALORI BOLLATI E POSTALI	VALORI BOLLATI E POSTALI	73	\N	\N
+477	10	03.03.010 ASSICURAZIONI	ASSICURAZIONI	73	\N	\N
+478	11	03.03.011 VIDIMAZIONE REGISTRI	VIDIMAZIONE REGISTRI	73	\N	\N
+479	12	03.03.012 MULTE AMMENDE SANZIONI	MULTE AMMENDE SANZIONI	73	\N	\N
+480	13	03.03.013 SPESE DI TRASPORTO	SPESE DI TRASPORTO	73	\N	\N
+481	14	03.03.014 SPESE E PERDITE VARIE	SPESE E PERDITE VARIE	73	\N	\N
+482	15	03.03.015 SPESE VARIE INDEDUCIBILI	SPESE VARIE INDEDUCIBILI	73	\N	\N
+483	16	03.03.016 MINUSVALENZE PATRIMONIALI	MINUSVALENZE PATRIMONIALI	73	\N	\N
+484	17	03.03.017 SOPRAVVENIENZE PASSIVE	SOPRAVVENIENZE PASSIVE	73	\N	\N
+485	18	03.03.018 STANZ.RIS.SOPRAVV.ART.55	STANZ.RIS.SOPRAVV.ART.55	73	\N	\N
+486	19	03.03.019 CONSULENZE SOFTWARE	CONSULENZE SOFTWARE	73	\N	\N
+487	20	03.03.020 VITTO E ALLOGGIO	VITTO E ALLOGGIO	73	\N	\N
+488	21	03.03.021 COMPENSI COMMISSIONI SOCI	COMPENSI COMMISSIONI SOCI	73	\N	\N
+489	22	03.03.022 COSTI PER BONIFICAcessato	COSTI PER BONIFICAcessato	73	\N	\N
+490	23	03.03.023 SPESE ADEGUAMENTO STATUTO	SPESE ADEGUAMENTO STATUTO	73	\N	\N
+491	24	03.03.024 CONTRATTO SICUREZZA-IGIEN	CONTRATTO SICUREZZA-IGIEN	73	\N	\N
+492	25	03.03.025 CONTR. ASSISTENZA PRIVACY	CONTR. ASSISTENZA PRIVACY	73	\N	\N
+493	26	03.03.026 DAZI E BOLLA DOGANALE	DAZI E BOLLA DOGANALE	73	\N	\N
+494	27	03.03.027 COSTI PENALI CONTRATTUALI	COSTI PENALI CONTRATTUALI	73	\N	\N
+495	28	03.03.028 SERVIZI BANCARI	SERVIZI BANCARI	73	\N	\N
+496	29	03.03.029 QUOTE ASSOCIATIVE	QUOTE ASSOCIATIVE	73	\N	\N
+497	30	03.03.030 CORSO DI AGGIORNAMENTO	CORSO DI AGGIORNAMENTO	73	\N	\N
+498	31	03.03.031 SPESE INCASSO RIC.BANCARI	SPESE INCASSO RIC.BANCARI	73	\N	\N
+499	1	03.04.001 RETRIBUZ.PERSONALE DIPEND	RETRIBUZ.PERSONALE DIPEND	74	\N	\N
+500	2	03.04.002 CONTRIB.PREVID.CARICO AZ.	CONTRIB.PREVID.CARICO AZ.	74	\N	\N
+501	3	03.04.003 QUOTA T.F.R. DIPENDENTI	QUOTA T.F.R. DIPENDENTI	74	\N	\N
+502	4	03.04.004 QUOTA 13^-14^-FERIE-PERM.	QUOTA 13^-14^-FERIE-PERM.	74	\N	\N
+503	5	03.04.005 CONTR.F/DO ASSIST.SANITAR	CONTR.F/DO ASSIST.SANITAR	74	\N	\N
+505	1	03.05.001 INTERESSI PASSIVI BANCA	INTERESSI PASSIVI BANCA	75	\N	\N
+506	2	03.05.002 INTERESSI PASSIVI COMM.LI	INTERESSI PASSIVI COMM.LI	75	\N	\N
+507	3	03.05.003 ONERI BANCARI	ONERI BANCARI	75	\N	\N
+508	4	03.05.004 SPESE PER FIDEJUSSIONI	SPESE PER FIDEJUSSIONI	75	\N	\N
+509	5	03.05.005 INTERESSI PASSIVI INDEDUC	INTERESSI PASSIVI INDEDUC	75	\N	\N
+510	6	03.05.006 CANONE MENSILE LEASING	CANONE MENSILE LEASING	75	\N	\N
+511	7	03.05.007 INTERESSI PASSIVI ERARIO	INTERESSI PASSIVI ERARIO	75	\N	\N
+512	8	03.05.008 INTERESSI PASSIVI FINANZ.	INTERESSI PASSIVI FINANZ.	75	\N	\N
+513	1	03.06.001 ONERI FISCALI DEDUCIBILI	ONERI FISCALI DEDUCIBILI	76	\N	\N
+514	2	03.06.002 ONERI FISCALI INDEDUCIBIL	ONERI FISCALI INDEDUCIBIL	76	\N	\N
+515	3	03.06.003 ADEMPIMENTI SOCIETARI	ADEMPIMENTI SOCIETARI	76	\N	\N
+516	4	03.06.004 TRIBUTI LOCALI VARI	TRIBUTI LOCALI VARI	76	\N	\N
+517	5	03.06.005 IVA INDEDUCIBILE	IVA INDEDUCIBILE	76	\N	\N
+518	6	03.06.006 IVA INDETRAIBILE DEDUCIB.	IVA INDETRAIBILE DEDUCIB.	76	\N	\N
+519	7	03.06.007 IMPOSTE ES.PREC.DEDUCIBIL	IMPOSTE ES.PREC.DEDUCIBIL	76	\N	\N
+520	8	03.06.008 IMPOSTE ES.PREC.INDEDUCIB	IMPOSTE ES.PREC.INDEDUCIB	76	\N	\N
+521	9	03.06.009 IRES ESERCIZIO CORRENTE	IRES ESERCIZIO CORRENTE	76	\N	\N
+522	10	03.06.010 IRPEG DIFFERITA	IRPEG DIFFERITA	76	\N	\N
+523	11	03.06.011 IRPEG ANTICIPATA	IRPEG ANTICIPATA	76	\N	\N
+524	12	03.06.012 IRAP ESERCIZIO CORRENTE	IRAP ESERCIZIO CORRENTE	76	\N	\N
+525	13	03.06.013 I.M.U.	I.M.U.	76	\N	\N
+526	14	03.06.014 CONTRIB.INPS LAVOR.AUTON.	CONTRIB.INPS LAVOR.AUTON.	76	\N	\N
+527	1	03.07.001 SPESE TELEFONICHE	SPESE TELEFONICHE	77	\N	\N
+528	2	03.07.002 GESTIONE AREA VERDE	GESTIONE AREA VERDE	77	\N	\N
+529	3	03.07.003 NOLEGGIO SALA X ASSEMBLEA	NOLEGGIO SALA X ASSEMBLEA	77	\N	\N
+530	4	03.07.004 CONTR.PULIZIA LOCALI UFF.	CONTR.PULIZIA LOCALI UFF.	77	\N	\N
+531	5	03.07.005 SPESE CONDOMINIALI	SPESE CONDOMINIALI	77	\N	\N
+532	1	03.08.001 MANUT.ORD.FABBR.AZIENDALI	MANUT.ORD.FABBR.AZIENDALI	78	\N	\N
+533	2	03.08.002 MANUT.ORDIN.IMPIANTI	MANUT.ORDIN.IMPIANTI	78	\N	\N
+534	3	03.08.003 MAN.ORD.AREA VERDEcessato	MAN.ORD.AREA VERDEcessato	78	\N	\N
+535	4	03.08.004 MANUT.ORD.BENI PATRIM.VAR	MANUT.ORD.BENI PATRIM.VAR	78	\N	\N
+536	5	03.08.005 CONTR.ASS.MACCHINE UFFICI	CONTR.ASS.MACCHINE UFFICI	78	\N	\N
+537	6	03.08.006 CONTR.ASSISTENZA SOFTWARE	CONTR.ASSISTENZA SOFTWARE	78	\N	\N
+538	7	03.08.007 MANUT.ORDIN.CALDAIE	MANUT.ORDIN.CALDAIE	78	\N	\N
+539	8	03.08.008 COSTI PER BONIFICAcessato	COSTI PER BONIFICAcessato	78	\N	\N
+540	9	03.08.009 MAN.ORD. SOTT.LI SCAMBIO	MAN.ORD. SOTT.LI SCAMBIO	78	\N	\N
+541	10	03.08.010 MAN. ORD.RETE DISTRIBUZ.	MAN. ORD.RETE DISTRIBUZ.	78	\N	\N
+542	11	03.08.011 MANUT. BENI TERZI	MANUT. BENI TERZI	78	\N	\N
+543	12	03.08.012 MESSA A NORMA FABBRICATO	MESSA A NORMA FABBRICATO	78	\N	\N
+544	13	03.08.013 MANUTENZ.MACCHINE UFFICIO	MANUTENZ.MACCHINE UFFICIO	78	\N	\N
+545	14	03.08.014 MESSA NORMA SOTTOCENTRALI	MESSA NORMA SOTTOCENTRALI	78	\N	\N
+546	15	03.08.015 CONTRATTO MANUT. IMPIANTI	CONTRATTO MANUT. IMPIANTI	78	\N	\N
+547	16	03.08.016 CONTRATTO MANUT.COGENERAT	CONTRATTO MANUT.COGENERAT	78	\N	\N
+548	17	03.08.017 CONTR.ASS.MEZZI SOLLEVAM.	CONTR.ASS.MEZZI SOLLEVAM.	78	\N	\N
+549	1	03.09.001 AMMORT.ORD.FABBR.AZIENDA	AMMORT.ORD.FABBR.AZIENDA	79	\N	\N
+550	2	03.09.002 AMMORT.ORDINARIO IMPIANTI	AMMORT.ORDINARIO IMPIANTI	79	\N	\N
+551	3	03.09.003 AMMORT.ORDINARIO CALDAIE	AMMORT.ORDINARIO CALDAIE	79	\N	\N
+552	4	03.09.004 AMMORT.ORD.MEZZI SOLLEVAM	AMMORT.ORD.MEZZI SOLLEVAM	79	\N	\N
+553	5	03.09.005 AMMORT.ORD.ATTREZZ.VARIA	AMMORT.ORD.ATTREZZ.VARIA	79	\N	\N
+554	6	03.09.006 AMMORT.ORD.MOBILI ARREDI	AMMORT.ORD.MOBILI ARREDI	79	\N	\N
+555	7	03.09.007 AMM.ORD.MACCH.UFF.ELETTR.	AMM.ORD.MACCH.UFF.ELETTR.	79	\N	\N
+556	8	03.09.008 AMM.BENI PATRIM.INF.1 M.	AMM.BENI PATRIM.INF.1 M.	79	\N	\N
+557	9	03.09.009 AMMORT.ORD. SOTTOCENTRALI	AMMORT.ORD. SOTTOCENTRALI	79	\N	\N
+558	10	03.09.010 AMM.ORD.RETE DISTRIBUZION	AMM.ORD.RETE DISTRIBUZION	79	\N	\N
+559	1	03.10.001 AMMORT.ANT.FABBR.AZIENDA	AMMORT.ANT.FABBR.AZIENDA	80	\N	\N
+560	2	03.10.002 AMMORT.ANTIC. IMPIANTI	AMMORT.ANTIC. IMPIANTI	80	\N	\N
+561	3	03.10.003 AMMORT.ANTIC. CALDAIE	AMMORT.ANTIC. CALDAIE	80	\N	\N
+562	4	03.10.004 AMMORT.ANTIC.MEZZI SOLLEV	AMMORT.ANTIC.MEZZI SOLLEV	80	\N	\N
+563	5	03.10.005 AMMORT.ANT.ATTREZZ.VARIA	AMMORT.ANT.ATTREZZ.VARIA	80	\N	\N
+564	6	03.10.006 AMMORT.ANT.MOBILI ARREDI	AMMORT.ANT.MOBILI ARREDI	80	\N	\N
+565	7	03.10.007 AMM.ANT.MACCH.UFF.ELETTR.	AMM.ANT.MACCH.UFF.ELETTR.	80	\N	\N
+566	1	03.11.001 AMMORT.SOFTWARE APPLICAT.	AMMORT.SOFTWARE APPLICAT.	81	\N	\N
+567	2	03.11.002 AMM.MAN.STR.FABBR.TERZI	AMM.MAN.STR.FABBR.TERZI	81	\N	\N
+568	3	03.11.003 AMM.MAN.STR.BENI PATRIMON	AMM.MAN.STR.BENI PATRIMON	81	\N	\N
+569	4	03.11.004 AMM.SPESE COSTIT.IMPIANTI	AMM.SPESE COSTIT.IMPIANTI	81	\N	\N
+570	5	03.11.005 AMM.SPESE ALLACC.IMPIANTI	AMM.SPESE ALLACC.IMPIANTI	81	\N	\N
+571	6	03.11.006 AMM.ONERI PLUR.LEASING'15	AMM.ONERI PLUR.LEASING'15	81	\N	\N
+572	7	03.11.007 AMM.ONERI PLUR.LI.FINANZ.	AMM.ONERI PLUR.LI.FINANZ.	81	\N	\N
+573	8	03.11.008 AMM.ONERI PLUR.LI LEASING	AMM.ONERI PLUR.LI LEASING	81	\N	\N
+574	1	03.12.001 MERCI C/RIMANENZE INIZIAL	MERCI C/RIMANENZE INIZIAL	82	\N	\N
+575	1	03.99.001 ARR.TI PASSIVI EURO C.E.	ARR.TI PASSIVI EURO C.E.	83	\N	\N
+576	1	04.01.001 RICAVI IN C/RISCALDAMENTO	RICAVI IN C/RISCALDAMENTO	84	\N	\N
+577	2	04.01.002 ACCREDITI A CONGUAGLIO	ACCREDITI A CONGUAGLIO	84	\N	\N
+578	3	04.01.003 ADDEBITI A CONGUAGLIO	ADDEBITI A CONGUAGLIO	84	\N	\N
+579	4	04.01.004 RECUPERO ACQUA CALDA	RECUPERO ACQUA CALDA	84	\N	\N
+580	5	04.01.005 VENDITA CEE	VENDITA CEE	84	\N	\N
+581	6	04.01.006 RECUPERO SPESE COGENERAZI	RECUPERO SPESE COGENERAZI	84	\N	\N
+582	7	04.01.007 VENDITA ENERGIA ELETTRICA	VENDITA ENERGIA ELETTRICA	84	\N	\N
+583	1	04.02.001 INTERESSI ATTIVI BANCA CC	INTERESSI ATTIVI BANCA CC	85	\N	\N
+584	2	04.02.002 INTERESSI ATTIVI POSTA CC	INTERESSI ATTIVI POSTA CC	85	\N	\N
+585	3	04.02.003 INTERESSI ATT.COMMERCIALI	INTERESSI ATT.COMMERCIALI	85	\N	\N
+586	4	04.02.004 INT.ATT. RIMBORSI IMPOSTA	INT.ATT. RIMBORSI IMPOSTA	85	\N	\N
+587	5	04.02.005 INT.C/DEPOSITI CAUZIONALI	INT.C/DEPOSITI CAUZIONALI	85	\N	\N
+588	1	04.03.001 RECUPERO SPESE DI BANCA	RECUPERO SPESE DI BANCA	86	\N	\N
+589	2	04.03.002 RECUPERI E PROVENTI VARI	RECUPERI E PROVENTI VARI	86	\N	\N
+590	3	04.03.003 RIMB.DANNI ASSICURAZIONE	RIMB.DANNI ASSICURAZIONE	86	\N	\N
+591	4	04.03.004 VENDITA BENI PATRIMONIALI	VENDITA BENI PATRIMONIALI	86	\N	\N
+592	5	04.03.005 PLUSVALENZE PATRIMONIALI	PLUSVALENZE PATRIMONIALI	86	\N	\N
+593	6	04.03.006 SOPRAVVENIENZE ATTIVE	SOPRAVVENIENZE ATTIVE	86	\N	\N
+594	7	04.03.007 ABBUONI E SCONTI ATTIVI	ABBUONI E SCONTI ATTIVI	86	\N	\N
+595	8	04.03.008 SOPRAVV.CONTR.ART.55	SOPRAVV.CONTR.ART.55	86	\N	\N
+596	9	04.03.009 IRPEG DIFFERITA	IRPEG DIFFERITA	86	\N	\N
+597	10	04.03.010 PROVENTI STRAORDINARI	PROVENTI STRAORDINARI	86	\N	\N
+598	11	04.03.011 ARROTOND.ATTIVI EURO	ARROTOND.ATTIVI EURO	86	\N	\N
+599	12	04.03.012 CONTR.CERTIFICATI BIANCHI	CONTR.CERTIFICATI BIANCHI	86	\N	\N
+600	1	04.04.001 MERCI C/RIMANENZE FINALI	MERCI C/RIMANENZE FINALI	87	\N	\N
+601	1	04.99.001 ARR.TI ATTIVI EURO C.E.	ARR.TI ATTIVI EURO C.E.	88	\N	\N
+602	1	05.01.001 FIDEJUSSIONI E AVALLI	FIDEJUSSIONI E AVALLI	89	\N	\N
+603	2	05.01.002 ACCREDITO CONTI D'ORDINE	ACCREDITO CONTI D'ORDINE	89	\N	\N
+604	3	05.01.003 RISCHI CANONI LEASING	RISCHI CANONI LEASING	89	\N	\N
+605	1	05.02.001 BILANCIO DI APERTURA	BILANCIO DI APERTURA	90	\N	\N
+606	2	05.02.002 BILANCIO DI CHIUSURA	BILANCIO DI CHIUSURA	90	\N	\N
+607	3	05.02.003 PERDITE PROFITTI GENERALI	PERDITE PROFITTI GENERALI	90	\N	\N
+318	2	01.02.002 CLIENTI ITALIA	CLIENTI ITALIA	48	\N	\N
+343	10	01.06.010 ERARIO C/IVA	ERARIO C/IVA	52	\N	\N
+504	6	03.04.006 ARROTONDAMENTI PAGHE	ARROTONDAMENTI PAGHE	74	\N	\N
+608	4	05.02.004 TRANSITO RA	TRANSITO RA	90	\N	\N
+609	5	05.02.005 TRANSITO RC	TRANSITO RC	90	\N	\N
+610	6	05.02.006 TRANSITO VALUTA	TRANSITO VALUTA	90	\N	\N
+621	11	02.03.011 INAIL	INAIL	61	\N	\N
+613	9	02.05.009 IVA C/LIQUIDAZIONE	IVA C/LIQUIDAZIONE	63	\N	\N
+307	2	01.01.002 ASSEGNI IN CASSA	ASSEGNI IN CASSA	47	\N	\N
+614	7	05.02.007 RIPRESA SALDI APERTURA	RIPRESA SALDI APERTURA	90	\N	\N
+376	1	02.02.001 FORNITORI(LAV.AUTONOMO)	FORNITORI(LAV.AUTONOMO)	60	\N	\N
+615	10	02.03.010 CREDITO ART. 1 DL 66/2014	CREDITO ART. 1 DL 66/2014	61	\N	\N
+616	18	03.08.018 MANUTENZIONE COGENERATORE	MANUTENZIONE COGENERATORE	78	\N	\N
+617	12	01.01.012 INTERESSI BANCARI	INTERESSI BANCARI	47	\N	\N
+618	4	02.10.004 F/DO MANUTENZIONI CICLICHE	F/DO MANUTENZIONI CICLICHE	68	\N	\N
+619	6	03.07.006 CONTR. NOLEGGIO STAMPANTE	CONTR. NOLEGGIO STAMPANTE	77	\N	\N
+622	15	01.07.015 CONTABILIZZAZIONE	CONTABILIZZAZIONE	53	\N	\N
 \.
 
 
 --
--- Data for Name: filtro_conto; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: conto_cee; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.conto_cee (id, nome, ordine, saldo) FROM stdin;
+\.
+
+
+--
+-- Data for Name: filtro_conto; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.filtro_conto (id, conto_id, stampa_id) FROM stdin;
@@ -1580,7 +1574,7 @@ COPY public.filtro_conto (id, conto_id, stampa_id) FROM stdin;
 
 
 --
--- Data for Name: filtro_estratto_conto; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: filtro_estratto_conto; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.filtro_estratto_conto (id, originale, sostituto) FROM stdin;
@@ -1599,7 +1593,7 @@ COPY public.filtro_estratto_conto (id, originale, sostituto) FROM stdin;
 
 
 --
--- Data for Name: filtro_registrazione; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: filtro_registrazione; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.filtro_registrazione (id, registrazione_id, stampa_id) FROM stdin;
@@ -1608,7 +1602,7 @@ COPY public.filtro_registrazione (id, registrazione_id, stampa_id) FROM stdin;
 
 
 --
--- Data for Name: filtro_registro; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: filtro_registro; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.filtro_registro (id, registro_id, registro_stampa_id) FROM stdin;
@@ -1628,7 +1622,7 @@ COPY public.filtro_registro (id, registro_id, registro_stampa_id) FROM stdin;
 
 
 --
--- Data for Name: imposta; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: imposta; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.imposta (id, nome, aliquota, natura, esigibilita, indetraibile, posizione, riferimento_normativo, rc, no_lipe) FROM stdin;
@@ -1651,7 +1645,7 @@ COPY public.imposta (id, nome, aliquota, natura, esigibilita, indetraibile, posi
 
 
 --
--- Data for Name: impostazioni; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: impostazioni; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.impostazioni (id, azienda_partner_id, erario_partner_id, misc_registro_id, imap_pwd, imap_server, imap_user, smtp_pwd, smtp_server, smtp_user, starting_date, fatf_registro_id, notf_registro_id, fatc_registro_id, notc_registro_id, sequenziale_sdi, conto_apertura_id, conto_chiusura_id, conto_perdite_profitti_id, conto_utile_id, conto_lav_autonomo_id, registro_autofattura_rc_id, registro_riconciliazione_rc_id, registro_riconciliazione_sp_id, ultimo_giorno_esercizio, pec_sdi) FROM stdin;
@@ -1660,7 +1654,7 @@ COPY public.impostazioni (id, azienda_partner_id, erario_partner_id, misc_regist
 
 
 --
--- Data for Name: log; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: log; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.log (id, "timestamp", "user", datalog) FROM stdin;
@@ -1737,7 +1731,7 @@ COPY public.log (id, "timestamp", "user", datalog) FROM stdin;
 
 
 --
--- Data for Name: mastro; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: mastro; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.mastro (id, codice, nome, tipo) FROM stdin;
@@ -1750,7 +1744,7 @@ COPY public.mastro (id, codice, nome, tipo) FROM stdin;
 
 
 --
--- Data for Name: movimento; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: movimento; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.movimento (id, descrizione, data_contabile, importo, conto_id, partner_id, registrazione_id, validazione_id) FROM stdin;
@@ -1795,7 +1789,7 @@ COPY public.movimento (id, descrizione, data_contabile, importo, conto_id, partn
 
 
 --
--- Data for Name: pagamento; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: pagamento; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.pagamento (id, nome, posizione, condizioni, modalita) FROM stdin;
@@ -1805,7 +1799,7 @@ COPY public.pagamento (id, nome, posizione, condizioni, modalita) FROM stdin;
 
 
 --
--- Data for Name: partner; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: partner; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.partner (id, nome, cap, cellulare, cf, citta, codice_destinatario, email, fax, indirizzo, iva, pec, rea_capitale, rea_codice, rea_codice_provincia, rea_stato_liquidatione, rea_tipo_socio, telefono, iban, regime_fiscale, amministratore_id, letturista_id, comune, provincia, pa, lav_autonomo, rea_ufficio) FROM stdin;
@@ -1819,7 +1813,7 @@ COPY public.partner (id, nome, cap, cellulare, cf, citta, codice_destinatario, e
 
 
 --
--- Data for Name: registrazione; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: registrazione; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.registrazione (id, nome, numero, descrizione, data_contabile, data_scadenza, note, importo, saldo, partner_id, registro_id, validazione_id, data_decorrenza, numero_origine, lav_autonomo, pagamento_id, tipo_documento_id, letturista, stato, domiciliatario_id) FROM stdin;
@@ -1840,7 +1834,7 @@ COPY public.registrazione (id, nome, numero, descrizione, data_contabile, data_s
 
 
 --
--- Data for Name: registro; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: registro; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.registro (id, codice, nome, categoria, posizione, conto_id, conto_iva_id, conto_precedente_id, tipo_documento_id, segno) FROM stdin;
@@ -1866,7 +1860,7 @@ COPY public.registro (id, codice, nome, categoria, posizione, conto_id, conto_iv
 
 
 --
--- Data for Name: registro_stampa; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: registro_stampa; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.registro_stampa (id, nome, categoria, posizione) FROM stdin;
@@ -1882,7 +1876,7 @@ COPY public.registro_stampa (id, nome, categoria, posizione) FROM stdin;
 
 
 --
--- Data for Name: riconciliazione; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: riconciliazione; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.riconciliazione (id, movimento_id, registrazione_id, validazione_id) FROM stdin;
@@ -1904,7 +1898,7 @@ COPY public.riconciliazione (id, movimento_id, registrazione_id, validazione_id)
 
 
 --
--- Data for Name: ritenuta; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: ritenuta; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.ritenuta (id, nome, aliquota, conto_transito_ritenuta_id, registro_ritenuta_id) FROM stdin;
@@ -1913,7 +1907,7 @@ COPY public.ritenuta (id, nome, aliquota, conto_transito_ritenuta_id, registro_r
 
 
 --
--- Data for Name: sdi; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: sdi; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.sdi (id, inbox, nome, "timestamp", fattura, registrazione_id, sent) FROM stdin;
@@ -1922,7 +1916,7 @@ COPY public.sdi (id, inbox, nome, "timestamp", fattura, registrazione_id, sent) 
 
 
 --
--- Data for Name: sottomastro; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: sottomastro; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.sottomastro (id, codice, nome, mastro_id) FROM stdin;
@@ -1974,7 +1968,7 @@ COPY public.sottomastro (id, codice, nome, mastro_id) FROM stdin;
 
 
 --
--- Data for Name: stampa; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: stampa; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.stampa (id, nome, data_decorrenza, data_scadenza, anno_stampa, ultima_pagina_stampa, ultima_riga_stampa, registro_stampa_id, precedente_pagina_stampa, precedente_riga_stampa, partner_id, "VP10", "VP11", "VP7", "VP8", "VP9") FROM stdin;
@@ -1985,7 +1979,7 @@ COPY public.stampa (id, nome, data_decorrenza, data_scadenza, anno_stampa, ultim
 
 
 --
--- Data for Name: tipo_documento; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: tipo_documento; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.tipo_documento (id, descrizione, codice, posizione) FROM stdin;
@@ -1997,7 +1991,7 @@ COPY public.tipo_documento (id, descrizione, codice, posizione) FROM stdin;
 
 
 --
--- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public."user" (id, username, email, password_hash, data, data_scadenza, dal, al, tipo_data, stato, bozze, partner_id, data_decorrenza, data_decorrenza_stampa, data_scadenza_stampa, anno_stampa, ruolo) FROM stdin;
@@ -2006,7 +2000,7 @@ COPY public."user" (id, username, email, password_hash, data, data_scadenza, dal
 
 
 --
--- Data for Name: validazione; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: validazione; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.validazione (id, registrazione_id) FROM stdin;
@@ -2026,7 +2020,7 @@ COPY public.validazione (id, registrazione_id) FROM stdin;
 
 
 --
--- Data for Name: voce; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: voce; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.voce (id, descrizione, quantita, importo, conto_id, imposta_id, partner_id, registrazione_id, riconciliazione_id, ritenuta_id, registro_id, esercizio_precedente) FROM stdin;
@@ -2060,7 +2054,7 @@ COPY public.voce (id, descrizione, quantita, importo, conto_id, imposta_id, part
 
 
 --
--- Data for Name: voce_iva; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: voce_iva; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.voce_iva (id, imponibile, iva, registrazione_id, imposta_id) FROM stdin;
@@ -2073,7 +2067,7 @@ COPY public.voce_iva (id, imponibile, iva, registrazione_id, imposta_id) FROM st
 
 
 --
--- Data for Name: voce_ritenuta; Type: TABLE DATA; Schema: public; Owner: user1
+-- Data for Name: voce_ritenuta; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.voce_ritenuta (id, imponibile, registrazione_id, ritenuta_id, ra) FROM stdin;
@@ -2082,196 +2076,203 @@ COPY public.voce_ritenuta (id, imponibile, registrazione_id, ritenuta_id, ra) FR
 
 
 --
--- Name: allegato_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: allegato_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.allegato_id_seq', 5416, true);
 
 
 --
--- Name: conto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: conto_cee_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.conto_cee_id_seq', 1, false);
+
+
+--
+-- Name: conto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.conto_id_seq', 622, true);
 
 
 --
--- Name: filtro_conto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: filtro_conto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.filtro_conto_id_seq', 43, true);
 
 
 --
--- Name: filtro_estratto_conto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: filtro_estratto_conto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.filtro_estratto_conto_id_seq', 11, true);
 
 
 --
--- Name: filtro_registrazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: filtro_registrazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.filtro_registrazione_id_seq', 69, true);
 
 
 --
--- Name: filtro_registro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: filtro_registro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.filtro_registro_id_seq', 17, true);
 
 
 --
--- Name: imposta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: imposta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.imposta_id_seq', 16, true);
 
 
 --
--- Name: impostazioni_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: impostazioni_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.impostazioni_id_seq', 3, true);
 
 
 --
--- Name: log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.log_id_seq', 5556, true);
 
 
 --
--- Name: mastro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: mastro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.mastro_id_seq', 13, true);
 
 
 --
--- Name: movimento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: movimento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.movimento_id_seq', 11864, true);
 
 
 --
--- Name: pagamento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: pagamento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.pagamento_id_seq', 2, true);
 
 
 --
--- Name: partner_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: partner_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.partner_id_seq', 264, true);
 
 
 --
--- Name: registrazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: registrazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.registrazione_id_seq', 2710, true);
 
 
 --
--- Name: registro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: registro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.registro_id_seq', 23, true);
 
 
 --
--- Name: registro_stampa_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: registro_stampa_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.registro_stampa_id_seq', 14, true);
 
 
 --
--- Name: riconciliazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: riconciliazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.riconciliazione_id_seq', 3628, true);
 
 
 --
--- Name: ritenuta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: ritenuta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.ritenuta_id_seq', 1, true);
 
 
 --
--- Name: sdi_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: sdi_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.sdi_id_seq', 1426, true);
 
 
 --
--- Name: sottomastro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: sottomastro_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.sottomastro_id_seq', 91, true);
 
 
 --
--- Name: stampa_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: stampa_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.stampa_id_seq', 129, true);
 
 
 --
--- Name: tipo_documento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: tipo_documento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.tipo_documento_id_seq', 4, true);
 
 
 --
--- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.user_id_seq', 3, true);
 
 
 --
--- Name: validazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: validazione_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.validazione_id_seq', 3426, true);
 
 
 --
--- Name: voce_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: voce_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.voce_id_seq', 6212, true);
 
 
 --
--- Name: voce_iva_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: voce_iva_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.voce_iva_id_seq', 1636, true);
 
 
 --
--- Name: voce_ritenuta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user1
+-- Name: voce_ritenuta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.voce_ritenuta_id_seq', 76, true);
 
 
 --
--- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.alembic_version
@@ -2279,7 +2280,7 @@ ALTER TABLE ONLY public.alembic_version
 
 
 --
--- Name: allegato allegato_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: allegato allegato_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.allegato
@@ -2287,7 +2288,15 @@ ALTER TABLE ONLY public.allegato
 
 
 --
--- Name: conto conto_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: conto_cee conto_cee_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.conto_cee
+    ADD CONSTRAINT conto_cee_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: conto conto_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.conto
@@ -2295,7 +2304,7 @@ ALTER TABLE ONLY public.conto
 
 
 --
--- Name: filtro_conto filtro_conto_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_conto filtro_conto_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_conto
@@ -2303,7 +2312,7 @@ ALTER TABLE ONLY public.filtro_conto
 
 
 --
--- Name: filtro_estratto_conto filtro_estratto_conto_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_estratto_conto filtro_estratto_conto_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_estratto_conto
@@ -2311,7 +2320,7 @@ ALTER TABLE ONLY public.filtro_estratto_conto
 
 
 --
--- Name: filtro_registrazione filtro_registrazione_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_registrazione filtro_registrazione_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registrazione
@@ -2319,7 +2328,7 @@ ALTER TABLE ONLY public.filtro_registrazione
 
 
 --
--- Name: filtro_registro filtro_registro_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_registro filtro_registro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registro
@@ -2327,7 +2336,7 @@ ALTER TABLE ONLY public.filtro_registro
 
 
 --
--- Name: imposta imposta_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: imposta imposta_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.imposta
@@ -2335,7 +2344,7 @@ ALTER TABLE ONLY public.imposta
 
 
 --
--- Name: impostazioni impostazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2343,7 +2352,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: log log_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: log log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.log
@@ -2351,7 +2360,7 @@ ALTER TABLE ONLY public.log
 
 
 --
--- Name: mastro mastro_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: mastro mastro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mastro
@@ -2359,7 +2368,7 @@ ALTER TABLE ONLY public.mastro
 
 
 --
--- Name: movimento movimento_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: movimento movimento_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.movimento
@@ -2367,7 +2376,7 @@ ALTER TABLE ONLY public.movimento
 
 
 --
--- Name: pagamento pagamento_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: pagamento pagamento_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pagamento
@@ -2375,7 +2384,7 @@ ALTER TABLE ONLY public.pagamento
 
 
 --
--- Name: partner partner_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: partner partner_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.partner
@@ -2383,7 +2392,7 @@ ALTER TABLE ONLY public.partner
 
 
 --
--- Name: registrazione registrazione_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2391,7 +2400,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registro registro_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: registro registro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro
@@ -2399,7 +2408,7 @@ ALTER TABLE ONLY public.registro
 
 
 --
--- Name: registro_stampa registro_stampa_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: registro_stampa registro_stampa_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro_stampa
@@ -2407,7 +2416,7 @@ ALTER TABLE ONLY public.registro_stampa
 
 
 --
--- Name: riconciliazione riconciliazione_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: riconciliazione riconciliazione_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.riconciliazione
@@ -2415,7 +2424,7 @@ ALTER TABLE ONLY public.riconciliazione
 
 
 --
--- Name: ritenuta ritenuta_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: ritenuta ritenuta_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ritenuta
@@ -2423,7 +2432,7 @@ ALTER TABLE ONLY public.ritenuta
 
 
 --
--- Name: sdi sdi_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: sdi sdi_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sdi
@@ -2431,7 +2440,7 @@ ALTER TABLE ONLY public.sdi
 
 
 --
--- Name: sottomastro sottomastro_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: sottomastro sottomastro_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sottomastro
@@ -2439,7 +2448,7 @@ ALTER TABLE ONLY public.sottomastro
 
 
 --
--- Name: stampa stampa_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: stampa stampa_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stampa
@@ -2447,7 +2456,7 @@ ALTER TABLE ONLY public.stampa
 
 
 --
--- Name: tipo_documento tipo_documento_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: tipo_documento tipo_documento_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tipo_documento
@@ -2455,7 +2464,7 @@ ALTER TABLE ONLY public.tipo_documento
 
 
 --
--- Name: user user_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."user"
@@ -2463,7 +2472,7 @@ ALTER TABLE ONLY public."user"
 
 
 --
--- Name: validazione validazione_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: validazione validazione_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.validazione
@@ -2471,7 +2480,7 @@ ALTER TABLE ONLY public.validazione
 
 
 --
--- Name: voce_iva voce_iva_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce_iva voce_iva_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_iva
@@ -2479,7 +2488,7 @@ ALTER TABLE ONLY public.voce_iva
 
 
 --
--- Name: voce voce_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -2487,7 +2496,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce_ritenuta voce_ritenuta_pkey; Type: CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce_ritenuta voce_ritenuta_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_ritenuta
@@ -2495,63 +2504,63 @@ ALTER TABLE ONLY public.voce_ritenuta
 
 
 --
--- Name: ix_allegato_nome; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_allegato_nome; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX ix_allegato_nome ON public.allegato USING btree (nome);
 
 
 --
--- Name: ix_conto_codice; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_conto_codice; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX ix_conto_codice ON public.conto USING btree (codice);
 
 
 --
--- Name: ix_mastro_codice; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_mastro_codice; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX ix_mastro_codice ON public.mastro USING btree (codice);
 
 
 --
--- Name: ix_partner_nome; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_partner_nome; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX ix_partner_nome ON public.partner USING btree (nome);
 
 
 --
--- Name: ix_registro_codice; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_registro_codice; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX ix_registro_codice ON public.registro USING btree (codice);
 
 
 --
--- Name: ix_sottomastro_codice; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_sottomastro_codice; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX ix_sottomastro_codice ON public.sottomastro USING btree (codice);
 
 
 --
--- Name: ix_user_email; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_user_email; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX ix_user_email ON public."user" USING btree (email);
 
 
 --
--- Name: ix_user_username; Type: INDEX; Schema: public; Owner: user1
+-- Name: ix_user_username; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX ix_user_username ON public."user" USING btree (username);
 
 
 --
--- Name: allegato allegato_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: allegato allegato_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.allegato
@@ -2559,7 +2568,7 @@ ALTER TABLE ONLY public.allegato
 
 
 --
--- Name: allegato allegato_sdi_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: allegato allegato_sdi_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.allegato
@@ -2567,7 +2576,7 @@ ALTER TABLE ONLY public.allegato
 
 
 --
--- Name: allegato allegato_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: allegato allegato_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.allegato
@@ -2575,7 +2584,7 @@ ALTER TABLE ONLY public.allegato
 
 
 --
--- Name: conto conto_sottomastro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: conto conto_sottomastro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.conto
@@ -2583,7 +2592,7 @@ ALTER TABLE ONLY public.conto
 
 
 --
--- Name: filtro_conto filtro_conto_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_conto filtro_conto_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_conto
@@ -2591,7 +2600,7 @@ ALTER TABLE ONLY public.filtro_conto
 
 
 --
--- Name: filtro_conto filtro_conto_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_conto filtro_conto_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_conto
@@ -2599,7 +2608,7 @@ ALTER TABLE ONLY public.filtro_conto
 
 
 --
--- Name: filtro_registrazione filtro_registrazione_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_registrazione filtro_registrazione_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registrazione
@@ -2607,7 +2616,7 @@ ALTER TABLE ONLY public.filtro_registrazione
 
 
 --
--- Name: filtro_registrazione filtro_registrazione_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_registrazione filtro_registrazione_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registrazione
@@ -2615,7 +2624,7 @@ ALTER TABLE ONLY public.filtro_registrazione
 
 
 --
--- Name: filtro_registro filtro_registro_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_registro filtro_registro_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registro
@@ -2623,7 +2632,7 @@ ALTER TABLE ONLY public.filtro_registro
 
 
 --
--- Name: filtro_registro filtro_registro_registro_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: filtro_registro filtro_registro_registro_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.filtro_registro
@@ -2631,7 +2640,7 @@ ALTER TABLE ONLY public.filtro_registro
 
 
 --
--- Name: impostazioni impostazioni_azienda_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_azienda_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2639,7 +2648,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_conto_apertura_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_conto_apertura_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2647,7 +2656,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_conto_chiusura_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_conto_chiusura_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2655,7 +2664,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_conto_lav_autonomo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_conto_lav_autonomo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2663,7 +2672,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_conto_perdite_profitti_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_conto_perdite_profitti_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2671,7 +2680,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_conto_utile_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_conto_utile_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2679,7 +2688,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_erario_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_erario_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2687,7 +2696,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_fatc_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_fatc_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2695,7 +2704,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_fatf_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_fatf_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2703,7 +2712,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_misc_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_misc_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2711,7 +2720,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_notc_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_notc_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2719,7 +2728,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_notf_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_notf_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2727,7 +2736,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_registro_autofattura_rc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_registro_autofattura_rc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2735,7 +2744,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_registro_riconciliazione_rc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_registro_riconciliazione_rc_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2743,7 +2752,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: impostazioni impostazioni_registro_riconciliazione_sp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: impostazioni impostazioni_registro_riconciliazione_sp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.impostazioni
@@ -2751,7 +2760,7 @@ ALTER TABLE ONLY public.impostazioni
 
 
 --
--- Name: movimento movimento_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: movimento movimento_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.movimento
@@ -2759,7 +2768,7 @@ ALTER TABLE ONLY public.movimento
 
 
 --
--- Name: movimento movimento_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: movimento movimento_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.movimento
@@ -2767,7 +2776,7 @@ ALTER TABLE ONLY public.movimento
 
 
 --
--- Name: movimento movimento_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: movimento movimento_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.movimento
@@ -2775,7 +2784,7 @@ ALTER TABLE ONLY public.movimento
 
 
 --
--- Name: movimento movimento_validazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: movimento movimento_validazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.movimento
@@ -2783,7 +2792,7 @@ ALTER TABLE ONLY public.movimento
 
 
 --
--- Name: partner partner_amministratore_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: partner partner_amministratore_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.partner
@@ -2791,7 +2800,7 @@ ALTER TABLE ONLY public.partner
 
 
 --
--- Name: partner partner_letturista_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: partner partner_letturista_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.partner
@@ -2799,7 +2808,7 @@ ALTER TABLE ONLY public.partner
 
 
 --
--- Name: registrazione registrazione_domiciliatario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_domiciliatario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2807,7 +2816,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registrazione registrazione_pagamento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_pagamento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2815,7 +2824,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registrazione registrazione_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2823,7 +2832,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registrazione registrazione_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2831,7 +2840,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registrazione registrazione_tipo_documento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_tipo_documento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2839,7 +2848,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registrazione registrazione_validazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registrazione registrazione_validazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registrazione
@@ -2847,7 +2856,7 @@ ALTER TABLE ONLY public.registrazione
 
 
 --
--- Name: registro registro_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registro registro_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro
@@ -2855,7 +2864,7 @@ ALTER TABLE ONLY public.registro
 
 
 --
--- Name: registro registro_conto_iva_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registro registro_conto_iva_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro
@@ -2863,7 +2872,7 @@ ALTER TABLE ONLY public.registro
 
 
 --
--- Name: registro registro_conto_precedente_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registro registro_conto_precedente_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro
@@ -2871,7 +2880,7 @@ ALTER TABLE ONLY public.registro
 
 
 --
--- Name: registro registro_tipo_documento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: registro registro_tipo_documento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.registro
@@ -2879,7 +2888,7 @@ ALTER TABLE ONLY public.registro
 
 
 --
--- Name: riconciliazione riconciliazione_movimento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: riconciliazione riconciliazione_movimento_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.riconciliazione
@@ -2887,7 +2896,7 @@ ALTER TABLE ONLY public.riconciliazione
 
 
 --
--- Name: riconciliazione riconciliazione_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: riconciliazione riconciliazione_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.riconciliazione
@@ -2895,7 +2904,7 @@ ALTER TABLE ONLY public.riconciliazione
 
 
 --
--- Name: riconciliazione riconciliazione_validazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: riconciliazione riconciliazione_validazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.riconciliazione
@@ -2903,7 +2912,7 @@ ALTER TABLE ONLY public.riconciliazione
 
 
 --
--- Name: ritenuta ritenuta_conto_transito_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: ritenuta ritenuta_conto_transito_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ritenuta
@@ -2911,7 +2920,7 @@ ALTER TABLE ONLY public.ritenuta
 
 
 --
--- Name: ritenuta ritenuta_registro_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: ritenuta ritenuta_registro_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ritenuta
@@ -2919,7 +2928,7 @@ ALTER TABLE ONLY public.ritenuta
 
 
 --
--- Name: sdi sdi_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: sdi sdi_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sdi
@@ -2927,7 +2936,7 @@ ALTER TABLE ONLY public.sdi
 
 
 --
--- Name: sottomastro sottomastro_mastro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: sottomastro sottomastro_mastro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sottomastro
@@ -2935,7 +2944,7 @@ ALTER TABLE ONLY public.sottomastro
 
 
 --
--- Name: stampa stampa_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: stampa stampa_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stampa
@@ -2943,7 +2952,7 @@ ALTER TABLE ONLY public.stampa
 
 
 --
--- Name: stampa stampa_registro_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: stampa stampa_registro_stampa_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stampa
@@ -2951,7 +2960,7 @@ ALTER TABLE ONLY public.stampa
 
 
 --
--- Name: user user_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: user user_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."user"
@@ -2959,7 +2968,7 @@ ALTER TABLE ONLY public."user"
 
 
 --
--- Name: validazione validazione_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: validazione validazione_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.validazione
@@ -2967,7 +2976,7 @@ ALTER TABLE ONLY public.validazione
 
 
 --
--- Name: voce voce_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_conto_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -2975,7 +2984,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce voce_imposta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_imposta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -2983,7 +2992,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce_iva voce_iva_imposta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce_iva voce_iva_imposta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_iva
@@ -2991,7 +3000,7 @@ ALTER TABLE ONLY public.voce_iva
 
 
 --
--- Name: voce_iva voce_iva_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce_iva voce_iva_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_iva
@@ -2999,7 +3008,7 @@ ALTER TABLE ONLY public.voce_iva
 
 
 --
--- Name: voce voce_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -3007,7 +3016,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce voce_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -3015,7 +3024,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce voce_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_registro_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -3023,7 +3032,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce voce_riconciliazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_riconciliazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -3031,7 +3040,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce voce_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce voce_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce
@@ -3039,7 +3048,7 @@ ALTER TABLE ONLY public.voce
 
 
 --
--- Name: voce_ritenuta voce_ritenuta_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce_ritenuta voce_ritenuta_registrazione_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_ritenuta
@@ -3047,7 +3056,7 @@ ALTER TABLE ONLY public.voce_ritenuta
 
 
 --
--- Name: voce_ritenuta voce_ritenuta_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: user1
+-- Name: voce_ritenuta voce_ritenuta_ritenuta_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.voce_ritenuta
