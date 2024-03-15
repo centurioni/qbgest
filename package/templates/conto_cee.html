@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h2>{{conto.nome}} {{conto.saldo|formatimporto}}</h2>
+
+    <table border="1">
+        <caption>
+            <h3>Conti associati</h3>
+        </caption>
+        <thead>
+            <tr><th>Cliccare sul conto per rimuovere</th><th>Saldo</th></tr>
+        </thead>
+        <tbody>
+        {% for c in contiassociati %}
+            <tr>
+                <td><a href="{{ url_for('rimuovi_cee', conto_id=c.id, conto_cee_id=conto.id) }}">{{ c.nome }}</a></td>
+                <td align="right">{{ c.saldo|formatimporto }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+    <table border="1">
+        <caption>
+            <h3>Conti associabili</h3>
+        </caption>
+        <thead>
+            <tr><th>Cliccare sul conto per associare</th><th>Saldo</th></tr>
+        </thead>
+        <tbody>
+        {% for c in conti %}
+            <tr>
+                <td><a href="{{ url_for('associa_cee', conto_id=c.id, conto_cee_id=conto.id) }}">{{ c.nome }}</a></td>
+                <td align="right">{{ c.saldo|formatimporto }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+{% endblock %}
+

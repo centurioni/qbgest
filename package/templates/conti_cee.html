@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="GET" action="{{ url_for('aggiorna_conti_cee') }}">
+<td> <input type="submit" value="Aggiorna saldi"></td>
+</form>
+
+
+    <table border="1">
+        <caption>
+            <h3>Conti CEE dal {{ dal|formatdate }} al {{ al|formatdate }}</h3>
+        </caption>
+        <thead>
+            <tr><th>Conto</th><th>Saldo</th></tr>
+        </thead>
+        <tbody>
+        {% for c in conti %}
+            <tr>
+                <td><a href="{{ url_for('conto_cee', id=c.id) }}">{{ c.nome }}</a></td>
+                <td align="right">{{ c.saldo|formatimporto }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
+
