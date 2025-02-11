@@ -613,36 +613,9 @@ def registrazioni(id):#mostra le registrazioni appartenenti ad un registro
         del filtro_form.tipo_data
         del filtro_form.stato
         if import_form.submit2.data and import_form.validate():
-            filtro=Filtro_estratto_conto.query.all()
             filename=os.path.join(here, 'estratto.txt')
             import_form.file.data.save(filename)
-            text=[]
-            in_file=open(filename,"r")
-            while True:
-                line=in_file.readline()
-                if len(line)<2: break
-                text.append(line)
-            in_file.close()
-            data,descrizione,importo=[],[],[]
-            for r in text:
-                if r[0]=="D": data.append(datetime.strptime(r[1:-1],"%m/%d/%Y").date())
-                if r[0]=="M":
-                    while "  " in r: r=r.replace("  ", " ")
-                    #for f in filtro: print(f.originale, f.sostituto)
-                    for f in filtro: r=r.replace(f.originale, f.sostituto)
-                    while "  " in r: r=r.replace("  ", " ")
-                    descrizione.append(r[1:-1])
-                if r[0]=="T": importo.append(dec(r[1:-1].replace(",","")))
-            for i in range(len(data)):
-                registrazione=Registrazione(registro=registro, importo=importo[i], data_contabile=data[i], descrizione=descrizione[i])
-                db.session.add(registrazione)
-                voce=Voce(registrazione=registrazione, descrizione=descrizione[i], conto=registrazione.registro.conto, importo=importo[i])
-                db.session.add(voce)
-            datalog="Importato estratto conto nel registro ["+registro.nome+"]"
-            log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
-            db.session.add(log)
-            db.session.commit()
-            return redirect(url_for('registrazioni', id=id))
+            return redirect(url_for('importa_estratto_conto', id=id, filename=filename))
         if filtro_form.submit_filtro.data and filtro_form.validate():
             current_user.dal=filtro_form.dal.data
             current_user.al=filtro_form.al.data
@@ -716,6 +689,47 @@ def registrazioni(id):#mostra le registrazioni appartenenti ad un registro
             bozze=[]
         registrazioni=bozze+registr
         return render_template('generici.html', registrazioni=registrazioni, registro=registro, filtro_form=filtro_form, partners=partners)
+
+@app.route('/importa_estratto_conto/<id>')
+@login_required
+def importa_estratto_conto(id):
+    filename = request.args.get('filename')
+    return render_template('wait.html', id=id, filename=filename, link="importa_estratto_conto_")
+
+@app.route('/importa_estratto_conto_/<id>')
+@login_required
+def importa_estratto_conto_(id):
+    registro=Registro.query.get(id)
+    filename = request.args.get('filename')
+    filtro=Filtro_estratto_conto.query.all()
+    text=[]
+    in_file=open(filename,"r")
+    while True:
+        line=in_file.readline()
+        if len(line)<2: break
+        text.append(line)
+    in_file.close()
+    data,descrizione,importo=[],[],[]
+    for r in text:
+        if r[0]=="D": data.append(datetime.strptime(r[1:-1],"%m/%d/%Y").date())
+        if r[0]=="M":
+            while "  " in r: r=r.replace("  ", " ")
+            #for f in filtro: print(f.originale, f.sostituto)
+            for f in filtro: r=r.replace(f.originale, f.sostituto)
+            while "  " in r: r=r.replace("  ", " ")
+            descrizione.append(r[1:-1])
+        if r[0]=="T": importo.append(dec(r[1:-1].replace(",","")))
+    for i in range(len(data)):
+        registrazione=Registrazione(registro=registro, importo=importo[i], data_contabile=data[i], descrizione=descrizione[i])
+        db.session.add(registrazione)
+        voce=Voce(registrazione=registrazione, descrizione=descrizione[i], conto=registrazione.registro.conto, importo=importo[i])
+        db.session.add(voce)
+    datalog="Importato estratto conto nel registro ["+registro.nome+"]"
+    log = Log(datalog=datalog, user=current_user.username, timestamp = func.now())
+    db.session.add(log)
+    db.session.commit()
+    flash("L'estratto conto è stato importato !")
+    return redirect(url_for('registrazioni', id=id))
 
 @app.route('/registrazione/<id>')
 @login_required
