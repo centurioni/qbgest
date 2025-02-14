@@ -195,7 +195,7 @@ def modifica_data():
     return render_template('data.html', testo="Impostare una nuova data ", form=form)
 
 @app.route('/chiusura_apertura', methods=['GET', 'POST'])
-@requires_roles('admin')#devo ancora sistemare la gestione dei periodi, per esempio evitare di chiudere 2 volte lo stesso esercizio, fino a quando non l'ho fatto faccio fare la chiusura solo all'amministratore 
+@requires_roles('admin','user')
 @login_required
 def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura anno fiscale
     impostazioni=Impostazioni.query.get(1)
@@ -204,90 +204,109 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
     filter_dal=filter_al+relativedelta(days=1)-relativedelta(years=1)
     form = ConfermaForm()
     if form.validate_on_submit():
-        registrazione=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura conto economico")
-        db.session.add(registrazione)
-        utile=0
-        conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Costi").order_by(Sottomastro.codice).order_by(Conto.codice).all()
-        for c in conti:
-            filtro="filter(Movimento.conto==c)."
-            if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
-            if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
-            totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
-            utile+=totale
-            if totale!=0:
-                voce=Voce(registrazione=registrazione, conto=c, importo=-totale, descrizione="Chiusura conto economico")
-                db.session.add(voce)
-        conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Ricavi").order_by(Sottomastro.codice).order_by(Conto.codice).all()
-        for c in conti:
-            filtro="filter(Movimento.conto==c)."
-            if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
-            if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
-            totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
-            utile+=totale
-            if totale!=0:
-                voce=Voce(registrazione=registrazione, conto=c, importo=-totale, descrizione="Chiusura conto economico")
-                db.session.add(voce)
-        voce=Voce(registrazione=registrazione, conto=impostazioni.conto_perdite_profitti, importo=utile, descrizione="Chiusura conto economico")
-        db.session.add(voce)
-        db.session.commit()
-        reg_generico(registrazione)
-
-        registrazione=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Utile esercizio")
-        db.session.add(registrazione)
-        voce=Voce(registrazione=registrazione, conto=impostazioni.conto_perdite_profitti, importo=-utile, descrizione="Utile esercizio")
-        db.session.add(voce)
-        voce=Voce(registrazione=registrazione, conto=impostazioni.conto_utile, importo=utile, descrizione="Utile esercizio")
-        db.session.add(voce)
-        db.session.commit()
-        reg_generico(registrazione)
-
-        chiusura_passivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura stato patrimoniale - Passività")
-        db.session.add(chiusura_passivita)
-        chiusura_attivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura stato patrimoniale - Attività")
-        db.session.add(chiusura_attivita)
-        apertura_passivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al+relativedelta(days=1), descrizione="Apertura stato patrimoniale - Passività")
-        db.session.add(apertura_passivita)
-        apertura_attivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al+relativedelta(days=1), descrizione="Apertura stato patrimoniale - Attività")
-        db.session.add(apertura_attivita)
-        conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Passività").order_by(Sottomastro.codice).order_by(Conto.codice).all()
-        passivita=0
-        for c in conti:
-            filtro="filter(Movimento.conto==c)."
-            if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
-            if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
-            totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
-            passivita+=totale
-            if totale!=0:
-                voce=Voce(registrazione=chiusura_passivita, conto=c, importo=-totale, descrizione="Chiusura stato patrimoniale - Passività")
-                db.session.add(voce)
-                voce=Voce(registrazione=apertura_passivita, conto=c, importo=totale, descrizione="Apertura stato patrimoniale - Passività")
-                db.session.add(voce)
-        voce=Voce(registrazione=chiusura_passivita, conto=impostazioni.conto_chiusura, importo=passivita, descrizione="Passività")
-        voce=Voce(registrazione=apertura_passivita, conto=impostazioni.conto_apertura, importo=-passivita, descrizione="Passività")
-        conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Attività").order_by(Sottomastro.codice).order_by(Conto.codice).all()
-        attivita=0
-        for c in conti:
-            filtro="filter(Movimento.conto==c)."
-            if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
-            if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
-            totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
-            attivita+=totale
-            if totale!=0:
-                voce=Voce(registrazione=chiusura_attivita, conto=c, importo=-totale, descrizione="Chiusura stato patrimoniale - Attività ")
-                db.session.add(voce)
-                voce=Voce(registrazione=apertura_attivita, conto=c, importo=totale, descrizione="Apertura stato patrimoniale - Attività")
-                db.session.add(voce)
-        voce=Voce(registrazione=chiusura_attivita, conto=impostazioni.conto_chiusura, importo=attivita, descrizione="Attività")
-        voce=Voce(registrazione=apertura_attivita, conto=impostazioni.conto_apertura, importo=-attivita, descrizione="Attività")
-        reg_generico(chiusura_attivita)
-        reg_generico(chiusura_passivita)
-        reg_generico(apertura_attivita)
-        reg_generico(apertura_passivita)
-        impostazioni.starting_date=filter_al+relativedelta(days=1)
-        db.session.commit()
-        return redirect(url_for('registrazioni', id=impostazioni.registro_misc.id))
+        return redirect(url_for('chiudi_bilancio'))
     form.data_delibera.data = current_user.data
     return render_template('conferma.html', testo="Generare le scritture per la chiusura e la riapertura dei conti per il periodo dal "+filter_dal.strftime("%d/%m/%Y")+" al "+filter_al.strftime("%d/%m/%Y")+" ?", form=form)
+
+@app.route('/chiudi_bilancio')
+@login_required
+def chiudi_bilancio():
+    return render_template('wait.html', link="chiudi_bilancio_")
+
+@app.route('/chiudi_bilancio_')
+@login_required
+def chiudi_bilancio_():
+    impostazioni=Impostazioni.query.get(1)
+    anno=current_user.data.year
+    filter_al=datetime.strptime(impostazioni.ultimo_giorno_esercizio+"/"+str(anno-1),"%d/%m/%Y").date()
+    filter_dal=filter_al+relativedelta(days=1)-relativedelta(years=1)
+    registrazione=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura conto economico")
+    db.session.add(registrazione)
+    utile=0
+    conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Costi").order_by(Sottomastro.codice).order_by(Conto.codice).all()
+    for c in conti:
+        filtro="filter(Movimento.conto==c)."
+        if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
+        if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
+        totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
+        utile+=totale
+        if totale!=0:
+            voce=Voce(registrazione=registrazione, conto=c, importo=-totale, descrizione="Chiusura conto economico")
+            db.session.add(voce)
+    conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Ricavi").order_by(Sottomastro.codice).order_by(Conto.codice).all()
+    for c in conti:
+        filtro="filter(Movimento.conto==c)."
+        if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
+        if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
+        totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
+        utile+=totale
+        if totale!=0:
+            voce=Voce(registrazione=registrazione, conto=c, importo=-totale, descrizione="Chiusura conto economico")
+            db.session.add(voce)
+    voce=Voce(registrazione=registrazione, conto=impostazioni.conto_perdite_profitti, importo=utile, descrizione="Chiusura conto economico")
+    db.session.add(voce)
+    db.session.commit()
+    reg_generico(registrazione)
+
+    registrazione=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Utile esercizio")
+    db.session.add(registrazione)
+    voce=Voce(registrazione=registrazione, conto=impostazioni.conto_perdite_profitti, importo=-utile, descrizione="Utile esercizio")
+    db.session.add(voce)
+    voce=Voce(registrazione=registrazione, conto=impostazioni.conto_utile, importo=utile, descrizione="Utile esercizio")
+    db.session.add(voce)
+    db.session.commit()
+    reg_generico(registrazione)
+
+    chiusura_passivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura stato patrimoniale - Passività")
+    db.session.add(chiusura_passivita)
+    chiusura_attivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al, descrizione="Chiusura stato patrimoniale - Attività")
+    db.session.add(chiusura_attivita)
+    apertura_passivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al+relativedelta(days=1), descrizione="Apertura stato patrimoniale - Passività")
+    db.session.add(apertura_passivita)
+    apertura_attivita=Registrazione(registro=impostazioni.registro_misc,data_contabile=filter_al+relativedelta(days=1), descrizione="Apertura stato patrimoniale - Attività")
+    db.session.add(apertura_attivita)
+    conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Passività").order_by(Sottomastro.codice).order_by(Conto.codice).all()
+    passivita=0
+    for c in conti:
+        filtro="filter(Movimento.conto==c)."
+        if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
+        if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
+        totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
+        passivita+=totale
+        if totale!=0:
+            voce=Voce(registrazione=chiusura_passivita, conto=c, importo=-totale, descrizione="Chiusura stato patrimoniale - Passività")
+            db.session.add(voce)
+            voce=Voce(registrazione=apertura_passivita, conto=c, importo=totale, descrizione="Apertura stato patrimoniale - Passività")
+            db.session.add(voce)
+    voce=Voce(registrazione=chiusura_passivita, conto=impostazioni.conto_chiusura, importo=passivita, descrizione="Passività")
+    db.session.add(voce)
+    voce=Voce(registrazione=apertura_passivita, conto=impostazioni.conto_apertura, importo=-passivita, descrizione="Passività")
+    db.session.add(voce)
+    conti = Conto.query.join(Sottomastro).join(Mastro).filter(Mastro.tipo=="Attività").order_by(Sottomastro.codice).order_by(Conto.codice).all()
+    attivita=0
+    for c in conti:
+        filtro="filter(Movimento.conto==c)."
+        if filter_dal!=None:filtro+="filter(Movimento.data_contabile>=filter_dal)."
+        if filter_al!=None:filtro+="filter(Movimento.data_contabile<=filter_al)."
+        totale=(eval("db.session.query(func.sum(Movimento.importo))."+filtro+"scalar()") or 0)
+        attivita+=totale
+        if totale!=0:
+            voce=Voce(registrazione=chiusura_attivita, conto=c, importo=-totale, descrizione="Chiusura stato patrimoniale - Attività ")
+            db.session.add(voce)
+            voce=Voce(registrazione=apertura_attivita, conto=c, importo=totale, descrizione="Apertura stato patrimoniale - Attività")
+            db.session.add(voce)
+    voce=Voce(registrazione=chiusura_attivita, conto=impostazioni.conto_chiusura, importo=attivita, descrizione="Attività")
+    db.session.add(voce)
+    voce=Voce(registrazione=apertura_attivita, conto=impostazioni.conto_apertura, importo=-attivita, descrizione="Attività")
+    db.session.add(voce)
+    reg_generico(chiusura_attivita)
+    reg_generico(chiusura_passivita)
+    reg_generico(apertura_attivita)
+    reg_generico(apertura_passivita)
+    impostazioni.starting_date=filter_al+relativedelta(days=1)
+    db.session.commit()
+    flash("Il bilancio è stato chiuso !")
+    return redirect(url_for('registrazioni', id=impostazioni.registro_misc.id))
 
 @app.route('/conti')
 @login_required
@@ -502,8 +521,9 @@ def rimuovi_registrazione(id):#rimuove una registrazione
 def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, dipende dai casi) tutte le registrazioni che dipendono da questa
     registrazione=Registrazione.query.get(id)
     form = ConfermaForm()
+    begin=Impostazioni.query.get(1).starting_date
     if form.validate_on_submit():
-        if registrazione.stato!=None and current_user.ruolo!="admin":
+        if (registrazione.stato!=None or registrazione.data_contabile < begin) and current_user.ruolo!="admin":# se è una fattura già inviata oppure relativa ad un esercizio già chiuso solo admin la può annullare
             flash("Non hai i permessi per annullare questa registrazione")
             return redirect(url_for('registrazione', id=id))
         else:
@@ -2492,6 +2512,10 @@ def voce_iva(id):#modifica la voce della liquidazione IVA
 @login_required
 def registra_iva(id):#registra la registrazione liquidazione IVA
     registrazione=Registrazione.query.get(id)
+    begin=Impostazioni.query.get(1).starting_date
+    if registrazione.data_contabile < begin and current_user.ruolo!="admin":# se è una registrazione relativa ad un esercizio già chiuso solo admin la può eseguire
+        flash("Non hai i permessi per eseguire questa registrazione")
+        return redirect(url_for('iva', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_iva(registrazione)
     return redirect(url_for('iva', id=id))
@@ -2644,6 +2668,10 @@ def registra_generico(id):#registra la registrazione generica
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
+        return redirect(url_for('generico', id=id))
+    begin=Impostazioni.query.get(1).starting_date
+    if registrazione.data_contabile < begin and current_user.ruolo!="admin":# se è una registrazione relativa ad un esercizio già chiuso solo admin la può eseguire
+        flash("Non hai i permessi per eseguire questa registrazione")
         return redirect(url_for('generico', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_generico(registrazione)
@@ -2821,6 +2849,10 @@ def registra_cassa(id):#registra la registrazione tipo cassa e genera le registr
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
+        return redirect(url_for('cassa', id=id))
+    begin=Impostazioni.query.get(1).starting_date
+    if registrazione.data_contabile < begin and current_user.ruolo!="admin":# se è una registrazione relativa ad un esercizio già chiuso solo admin la può eseguire
+        flash("Non hai i permessi per eseguire questa registrazione")
         return redirect(url_for('cassa', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_cassa(registrazione)
@@ -3057,9 +3089,13 @@ def fattura(id):#visualizza o edita la fattura
 
 @app.route('/cambia_conto/<id>', methods=['GET', 'POST'])
 @login_required
-def cambia_conto(id):#modifica il conto per le voce della fattura
+def cambia_conto(id):#modifica il conto per la voce della fattura
     conti = Conto.query.all()
     voce = Voce.query.get(id)
+    begin=Impostazioni.query.get(1).starting_date
+    if voce.registrazione.data_contabile < begin and current_user.ruolo!="admin":# se è una registrazione relativa ad un esercizio già chiuso solo admin la può eseguire
+        flash("Non hai i permessi per eseguire questa operazione")
+        return redirect(url_for('registrazione', id=voce.registrazione.id))
     vecchioconto = voce.conto
     form = CambiaContoForm()
     if form.validate_on_submit():
@@ -3114,6 +3150,10 @@ def registra_fattura(id):#registra la fattura e genera le registrazioni accessor
     impostazioni=Impostazioni.query.get(1)
     if not validate_fattura(registrazione):
         flash('ERRORE DI VALIDAZIONE !')
+        return redirect(url_for('fattura', id=id))
+    begin=Impostazioni.query.get(1).starting_date
+    if registrazione.data_contabile < begin and current_user.ruolo!="admin":# se è una registrazione relativa ad un esercizio già chiuso solo admin la può eseguire
+        flash("Non hai i permessi per eseguire questa registrazione")
         return redirect(url_for('fattura', id=id))
     if registrazione.validazione_backref.first() == None:
         reg_fattura(registrazione)
@@ -3675,7 +3715,7 @@ def impostazioni():
 
 @app.route('/imposta_mastri')
 @login_required
-@requires_roles('admin')
+@requires_roles('admin','user')
 def imposta_mastri():
     mastri = Mastro.query.order_by(Mastro.codice).all()
     return render_template('imposta_mastri.html', mastri=mastri)
@@ -3689,12 +3729,15 @@ def log():
 
 @app.route('/imposta_mastro/<id>', methods=['GET', 'POST'])
 @login_required
-@requires_roles('admin')
+@requires_roles('admin','user')
 def imposta_mastro(id):
     mastro=Mastro.query.get(id)
     sottomastri=Sottomastro.query.filter_by(mastro=mastro).order_by(Sottomastro.codice).all()
     form = MastroForm()
     if form.validate_on_submit():
+        if current_user.ruolo!="admin":
+            flash('Non hai i privilegi per esguire questa operazione !')
+            return redirect(url_for('imposta_mastro', id=id))
         mastro.nome=form.nome.data
         mastro.tipo=form.tipo.data
         mastro.codice=form.codice.data
@@ -3729,13 +3772,16 @@ def rimuovi_mastro(id):
 
 @app.route('/imposta_sottomastro/<id>', methods=['GET', 'POST'])
 @login_required
-@requires_roles('admin')
+@requires_roles('admin','user')
 def imposta_sottomastro(id):
     sottomastro=Sottomastro.query.get(id)
     conti=Conto.query.filter_by(sottomastro=sottomastro).order_by(Conto.codice).all()
     form = SottomastroForm()
     mastri = Mastro.query.all()
     if form.validate_on_submit():
+        if current_user.ruolo!="admin":
+            flash('Non hai i privilegi per esguire questa operazione !')
+            return redirect(url_for('imposta_sottomastro', id=id))
         sottomastro.nome=form.nome.data
         sottomastro.mastro=Mastro.query.filter_by(nome=form.mastro.data).first()
         sottomastro.codice=form.codice.data
@@ -3772,7 +3818,7 @@ def rimuovi_sottomastro(id):
 
 @app.route('/imposta_conto/<id>', methods=['GET', 'POST'])
 @login_required
-@requires_roles('admin')
+@requires_roles('admin','user')
 def imposta_conto(id):
     conto=Conto.query.get(id)
     form = ContoForm()
@@ -3794,7 +3840,7 @@ def imposta_conto(id):
 
 @app.route('/aggiungi_conto/<id>')
 @login_required
-@requires_roles('admin')
+@requires_roles('admin','user')
 def aggiungi_conto(id):
     sottomastro=Sottomastro.query.get(id)
     conto=Conto(nome="Nuovo conto", sottomastro=sottomastro)
@@ -3805,7 +3851,7 @@ def aggiungi_conto(id):
 
 @app.route('/rimuovi_conto/<id>')
 @login_required
-@requires_roles('admin')
+@requires_roles('admin','user')
 def rimuovi_conto(id):
     conto=Conto.query.get(id)
     id=conto.sottomastro.id
