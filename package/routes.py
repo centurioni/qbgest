@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from flask import render_template, flash, redirect, url_for, request, send_file, current_app
 from flask_login import login_user, logout_user, current_user, login_required
-from werkzeug.urls import url_parse
+#from werkzeug.urls import url_parse
 from package import app, db
 from package.forms import *
 from package.models import *
@@ -99,7 +99,7 @@ def login():
         user.data=date.today()
         db.session.commit()
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page:
             next_page = url_for('index')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
