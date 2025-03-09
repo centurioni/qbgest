@@ -1930,6 +1930,7 @@ def Stampa_libro_mastro(partner,dal,al,conti,filename):
         filtro="filter(Movimento.conto==conto)."
         if partner!=None:filtro+="filter(Movimento.partner==partner)."
         saldo=0
+        dare,avere=0,0
         if dal!=None:
             anno=dal.year#calcola il saldo iniziale
             fine_esercizio_anno=datetime.strptime(impostazioni.ultimo_giorno_esercizio+"/"+str(anno),"%d/%m/%Y").date()
@@ -1956,11 +1957,24 @@ def Stampa_libro_mastro(partner,dal,al,conti,filename):
                     can.write(3,m.descrizione[:40])
                 else:can.write(3,m.descrizione[:80])
                 can.write(2,m.registrazione.nome)
-                if m.importo<0:can.write(6,valuta(-1*m.importo))
-                else:can.write(5,valuta(m.importo))
+                if m.importo<0:
+                    can.write(6,valuta(-1*m.importo))
+                    avere-=m.importo
+                else:
+                    can.write(5,valuta(m.importo))
+                    dare+=m.importo
                 saldo+=m.importo
                 can.write(7,valuta(saldo))
-            #can.newline()
+            can.newline()
+            can.newline()
+            can.write(3,"Totale del periodo selezionato")
+            can.write(5,valuta(dare))
+            can.write(6,valuta(avere))
+            can.newline()
+            can.write(3,"Saldo dare avere")
+            if dare-avere<0:can.write(6,valuta(avere-dare))
+            else:can.write(5,valuta(dare-avere))
+            
     can.save()
     stampa.ultima_pagina_stampa=can.page
     return can.page
