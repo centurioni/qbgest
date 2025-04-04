@@ -808,6 +808,22 @@ def rimuovi_voce(id):#rimuove una voce da una registrazione
     if testo==None:testo="None"
     return render_template('conferma.html', testo="Rimozione della voce "+testo, form=form)
 
+@app.route('/quadra/<id>')
+@login_required
+def quadra(id):#fa la quadratura della registrazione aggiustando l'importo dell'ultima voce
+    registrazione=Registrazione.query.get(id)
+    categoria=registrazione.registro.categoria
+    importo=dec(0.0)
+    #voci=Voce.query.filter_by(registrazione=registrazione).filter_by(conto=registrazione.registro.conto).first()
+    if categoria=="Generico" or categoria=="Cassa":
+        #voci = Voce.query.filter(Voce.registrazione==registrazione).filter_by(conto=registrazione.registro.conto).all()
+        voci = Voce.query.join(Conto).join(Sottomastro).join(Mastro).filter(Voce.registrazione==registrazione).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).order_by(Voce.id).all()
+        for v in voci[:-1]:
+            importo-=dec(v.importo)
+    voci[-1].importo=importo
+    db.session.commit()
+    return redirect(url_for('registrazione', id=id))
+
 @app.route('/aggiungi_voce/<id>')
 @login_required
 def aggiungi_voce(id):#aggiunge una voce ad una registrazione

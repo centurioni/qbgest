@@ -89,6 +89,10 @@
     </table>
     <br>
 
+    <form method="GET" action="{{ url_for('quadra', id=registrazione.id) }}">
+    <td> <input type="submit" value="Quadra"></td>
+    </form>
+
     <table border="1">
         <thead>
             <tr><th>Registrazione</th><th>Partner</th><th>Descrizione</th><th>Importo</th><th>Saldo</th><th>Data contabile</th><th>Azione</th></tr>
