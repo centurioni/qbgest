@@ -820,7 +820,7 @@ def quadra(id):#fa la quadratura della registrazione aggiustando l'importo dell'
         voci = Voce.query.join(Conto).join(Sottomastro).join(Mastro).filter(Voce.registrazione==registrazione).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).order_by(Voce.id).all()
         for v in voci[:-1]:
             importo-=dec(v.importo)
-    voci[-1].importo=importo
+    if len(voci)>1:voci[-1].importo=importo
     db.session.commit()
     return redirect(url_for('registrazione', id=id))
 
