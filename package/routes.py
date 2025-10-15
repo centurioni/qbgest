@@ -628,6 +628,7 @@ def registrazioni(id):#mostra le registrazioni appartenenti ad un registro
         totale=totale+totale_bozze
         saldo=saldo+saldo_bozze
         registrazioni=bozze+registr
+        if len(registrazioni)>1000:flash("La ricerca ha prodotto "+str(len(registrazioni))+" documenti, a causa dell'elevato numero il sistema potrebbe sovraccaricarsi e rallentare, si consiglia di utilizzare il filtro per ridurre il numero dei risultati")
         return render_template('fatture.html', registrazioni=registrazioni, registro=registro, filtro_form=filtro_form, partners=partners, totale=totale, saldo=saldo)
     if categoria=="Cassa":
         del filtro_form.tipo_data
@@ -676,6 +677,7 @@ def registrazioni(id):#mostra le registrazioni appartenenti ad un registro
             bozze=[]
         totale=totale+totale_bozze
         registrazioni=bozze+registr
+        if len(registrazioni)>1000:flash("La ricerca ha prodotto "+str(len(registrazioni))+" documenti, a causa dell'elevato numero il sistema potrebbe sovraccaricarsi e rallentare, si consiglia di utilizzare il filtro per ridurre il numero dei risultati")
         return render_template('casse.html', registrazioni=registrazioni, registro=registro, filtro_form=filtro_form, import_form = import_form, partners=partners, totale=totale, saldo_iniziale=saldo_iniziale)
     if categoria=="Generico":
         del filtro_form.tipo_data
