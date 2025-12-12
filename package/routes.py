@@ -61,10 +61,10 @@ def requires_roles(*roles):
     def wrapper(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            if current_user.ruolo not in roles:
+            if current_user.is_authenticated and current_user.ruolo in roles:return f(*args, **kwargs)
+            else:
                 flash('Non hai i privilegi per accedere a questa pagina !')
                 return redirect(url_for('index'))
-            return f(*args, **kwargs)
         return wrapped
     return wrapper
 
@@ -111,13 +111,11 @@ def logout():
 
 @app.route('/imposta_utenti')
 @requires_roles('admin')
-@login_required
 def imposta_utenti():
     users=User.query.order_by(User.id).all()
     return render_template ("users.html", users=users)
 
 @app.route('/register', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def register():
     form = RegistrationForm()
@@ -132,7 +130,6 @@ def register():
 
 @app.route('/imposta_utente/<id>', methods=['GET', 'POST'])
 @requires_roles('admin')
-@login_required
 def imposta_utente(id):
     user=User.query.get(id)
     form = UserForm()
@@ -155,7 +152,6 @@ def imposta_utente(id):
 
 @app.route('/delete_account/<id>', methods=['GET', 'POST'])
 @requires_roles('admin')
-@login_required
 def delete_account(id):#rimuove l'account da root
     user=User.query.get(id)
     form = ConfermaForm()
@@ -171,7 +167,6 @@ def delete_account(id):#rimuove l'account da root
 
 @app.route('/change_password/<id>', methods=['GET', 'POST'])
 @requires_roles('admin')
-@login_required
 def change_password(id):
     user=User.query.get(id)
     form = PasswordForm()
@@ -196,7 +191,6 @@ def modifica_data():
 
 @app.route('/chiusura_apertura', methods=['GET', 'POST'])
 @requires_roles('admin','user')
-@login_required
 def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura anno fiscale
     impostazioni=Impostazioni.query.get(1)
     anno=current_user.data.year
@@ -209,12 +203,12 @@ def chiusura_apertura():#genera le scritture contabili di chiusura e riapertura 
     return render_template('conferma.html', testo="Generare le scritture per la chiusura e la riapertura dei conti per il periodo dal "+filter_dal.strftime("%d/%m/%Y")+" al "+filter_al.strftime("%d/%m/%Y")+" ?", form=form)
 
 @app.route('/chiudi_bilancio')
-@login_required
+@requires_roles('admin','user')
 def chiudi_bilancio():
     return render_template('wait.html', link="chiudi_bilancio_")
 
 @app.route('/chiudi_bilancio_')
-@login_required
+@requires_roles('admin','user')
 def chiudi_bilancio_():
     impostazioni=Impostazioni.query.get(1)
     anno=current_user.data.year
@@ -326,7 +320,8 @@ def conti():#mostra il saldo di tutti i conti
 def aggiorna_conti_cee():#aggiorna il saldo dei conti nell'anno fiscale per visualizzare i totali cee
     impostazioni=Impostazioni.query.get(1)
     conti = Conto.query.join(Sottomastro).join(Mastro).order_by(Mastro.codice).order_by(Sottomastro.codice).order_by(Conto.codice).all()
-    dal=impostazioni.starting_date
+    dal=current_user.dal
+    if dal==None:dal=impostazioni.starting_date
     al=dal+relativedelta(years=1)-relativedelta(days=1)
     for c in conti:
         filtro="filter(Movimento.conto==c)."
@@ -340,7 +335,8 @@ def aggiorna_conti_cee():#aggiorna il saldo dei conti nell'anno fiscale per visu
 @login_required
 def conti_cee():#mostra il saldo dei conti cee
     impostazioni=Impostazioni.query.get(1)
-    dal=impostazioni.starting_date
+    dal=current_user.dal
+    if dal==None:dal=impostazioni.starting_date
     al=dal+relativedelta(years=1)-relativedelta(days=1)
     conti = ContoCee.query.order_by(ContoCee.ordine).all()
     for c in conti:
@@ -352,7 +348,7 @@ def conti_cee():#mostra il saldo dei conti cee
     return render_template('conti_cee.html', conti=conti, dal=dal, al=al)
 
 @app.route('/associa_cee')
-@login_required
+@requires_roles('admin')
 def associa_cee():
     conto_id = request.args.get('conto_id')
     conto_cee_id = request.args.get('conto_cee_id')
@@ -363,7 +359,7 @@ def associa_cee():
     return redirect(url_for('conto_cee', id=conto_cee_id))
 
 @app.route('/rimuovi_cee')
-@login_required
+@requires_roles('admin')
 def rimuovi_cee():
     conto_id = request.args.get('conto_id')
     conto_cee_id = request.args.get('conto_cee_id')
@@ -445,7 +441,7 @@ def registri():#mostra il totale ed il saldo di tutti i registri
     return render_template('registri.html', registri=registri, totale=totale, saldo=saldo, inizio=impostazioni.starting_date)
 
 @app.route('/duplica_registrazione/<id>')
-@login_required
+@requires_roles('admin','user')
 def duplica_registrazione(id):#duplica una registrazione
     nuovaregistrazione=Registrazione.query.get(id)
     db.session.expunge(nuovaregistrazione)
@@ -486,7 +482,7 @@ def duplica_registrazione(id):#duplica una registrazione
     return redirect(url_for('registrazione', id=nuovaregistrazione.id))
 
 @app.route('/aggiungi_registrazione/<id>')
-@login_required
+@requires_roles('admin','user')
 def aggiungi_registrazione(id):#aggiunge una registrazione
     registro=Registro.query.get(id)
     registrazione=Registrazione(registro=registro, importo=0, saldo=0, data_contabile=current_user.data)
@@ -499,7 +495,7 @@ def aggiungi_registrazione(id):#aggiunge una registrazione
     return redirect(url_for('registrazione', id=registrazione.id))
 
 @app.route('/rimuovi_registrazione/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def rimuovi_registrazione(id):#rimuove una registrazione
     registrazione=Registrazione.query.get(id)
     form = ConfermaForm()
@@ -517,7 +513,7 @@ def rimuovi_registrazione(id):#rimuove una registrazione
     return render_template('conferma.html', testo="Rimozione della registrazione "+testo, form=form)
 
 @app.route('/annulla_registrazione/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def annulla_registrazione(id):#annulla una registrazione e annulla (o elimina, dipende dai casi) tutte le registrazioni che dipendono da questa
     registrazione=Registrazione.query.get(id)
     form = ConfermaForm()
@@ -713,13 +709,13 @@ def registrazioni(id):#mostra le registrazioni appartenenti ad un registro
         return render_template('generici.html', registrazioni=registrazioni, registro=registro, filtro_form=filtro_form, partners=partners)
 
 @app.route('/importa_estratto_conto/<id>')
-@login_required
+@requires_roles('admin','user')
 def importa_estratto_conto(id):
     filename = request.args.get('filename')
     return render_template('wait.html', id=id, filename=filename, link="importa_estratto_conto_")
 
 @app.route('/importa_estratto_conto_/<id>')
-@login_required
+@requires_roles('admin','user')
 def importa_estratto_conto_(id):
     registro=Registro.query.get(id)
     filename = request.args.get('filename')
@@ -765,7 +761,7 @@ def registrazione(id):#mostra una registrazione (view or edit)
     if categoria=="IVA": return redirect(url_for('iva', id=id))
 
 @app.route('/rimuovi_allegato/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def rimuovi_allegato(id):#rimuove un allegato da una registrazione
     allegato=Allegato.query.get(id)
     form = ConfermaForm()
@@ -780,7 +776,7 @@ def rimuovi_allegato(id):#rimuove un allegato da una registrazione
     return render_template('conferma.html', testo="Rimozione dell'allegato "+testo, form=form)
 
 @app.route('/rimuovi_allegato_stampa/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def rimuovi_allegato_stampa(id):#rimuove un allegato da una stampa
     allegato=Allegato.query.get(id)
     form = ConfermaForm()
@@ -794,7 +790,7 @@ def rimuovi_allegato_stampa(id):#rimuove un allegato da una stampa
     return render_template('conferma.html', testo="Rimozione dell'allegato "+testo, form=form)
 
 @app.route('/rimuovi_voce/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def rimuovi_voce(id):#rimuove una voce da una registrazione
     voce=Voce.query.get(id)
     form = ConfermaForm()
@@ -811,7 +807,7 @@ def rimuovi_voce(id):#rimuove una voce da una registrazione
     return render_template('conferma.html', testo="Rimozione della voce "+testo, form=form)
 
 @app.route('/quadra/<id>')
-@login_required
+@requires_roles('admin','user')
 def quadra(id):#fa la quadratura della registrazione aggiustando l'importo dell'ultima voce
     registrazione=Registrazione.query.get(id)
     categoria=registrazione.registro.categoria
@@ -827,7 +823,7 @@ def quadra(id):#fa la quadratura della registrazione aggiustando l'importo dell'
     return redirect(url_for('registrazione', id=id))
 
 @app.route('/aggiungi_voce/<id>')
-@login_required
+@requires_roles('admin','user')
 def aggiungi_voce(id):#aggiunge una voce ad una registrazione
     registrazione=Registrazione.query.get(id)
     categoria=registrazione.registro.categoria
@@ -846,7 +842,7 @@ def aggiungi_voce(id):#aggiunge una voce ad una registrazione
     if categoria=="IVA":return redirect(url_for('voce_iva', id=voce.id))
 
 @app.route('/aggiungi_riconciliazione/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def aggiungi_riconciliazione(id):# nella registrazione di tipo cassa o generico aggiunge le voci per riconciliare con altre registrazioni
     impostazioni=Impostazioni.query.get(1)
     riconciliazione_id = request.args.get('riconciliazione_id')
@@ -932,7 +928,7 @@ def partner(id):#visualizza il partner
     return render_template('partner.html', partner=partner, form=form, filtro_form=filtro_form, registrazioni=registrazioni, totale=totale, saldo=saldo)
 
 @app.route('/aggiungi_partner')
-@login_required
+@requires_roles('admin','user')
 def aggiungi_partner():#aggiunge un partner
     partner=Partner()
     db.session.add(partner)
@@ -945,7 +941,7 @@ def aggiungi_partner():#aggiunge un partner
     return redirect(url_for('partner', id=partner.id))
 
 @app.route('/rimuovi_partner/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def rimuovi_partner(id):#rimuove il partenr
     partner=Partner.query.get(id)
     form = ConfermaForm()
@@ -958,7 +954,7 @@ def rimuovi_partner(id):#rimuove il partenr
     return render_template('conferma.html', testo="Rimozione del partner "+partner.nome, form=form)
 
 @app.route('/edit_partner/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def edit_partner(id):#modifica il partner
     partner=Partner.query.get(id)
     partners = Partner.query.all()
@@ -1026,7 +1022,7 @@ def registri_stampe():
     return render_template('registri_stampe.html', registri=registri)
 
 @app.route('/aggiungi_stampa/<id>')
-@login_required
+@requires_roles('admin','user')
 def aggiungi_stampa(id):
     registro=Registro_stampa.query.get(id)
     stampa=Stampa(registro_stampa=registro)
@@ -1039,7 +1035,7 @@ def aggiungi_stampa(id):
     return redirect(url_for('stampa', id=stampa.id))
 
 @app.route('/rimuovi_stampa/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def rimuovi_stampa(id):
     stampa=Stampa.query.get(id)
     form = ConfermaForm()
@@ -1051,7 +1047,7 @@ def rimuovi_stampa(id):
     return render_template('conferma.html', testo="Rimozione della stampa", form=form)
 
 @app.route('/aggiungi_filtro_conto/<id>')
-@login_required
+@requires_roles('admin','user')
 def aggiungi_filtro_conto(id):
     stampa=Stampa.query.get(id)
     filtro_conto=Filtro_conto(stampa=stampa)
@@ -1060,7 +1056,7 @@ def aggiungi_filtro_conto(id):
     return redirect(url_for('filtro_conto', id=filtro_conto.id))
 
 @app.route('/filtro_conto/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def filtro_conto(id):
     conti = Conto.query.all()
     form = FiltroContoForm()
@@ -1076,7 +1072,7 @@ def filtro_conto(id):
     return render_template('filtro_conto.html', form=form, conti=conti)
 
 @app.route('/rimuovi_filtro_conto/<id>')
-@login_required
+@requires_roles('admin','user')
 def rimuovi_filtro_conto(id):
     filtro=Filtro_conto.query.get(id)
     id=filtro.stampa.id
@@ -1114,6 +1110,9 @@ def stampa_liquidazione_iva(id):
     allegati=stampa.allegato.order_by(Allegato.id).all()
     form = StampaLiquidazioneIvaForm()
     if form.submit.data and form.validate():
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('stampa_liquidazione_iva', id=id))
         stampa.anno_stampa=form.anno_stampa.data
         stampa.precedente_pagina_stampa=form.precedente_pagina_stampa.data
         registrazione=Registrazione.query.filter_by(nome=form.registrazione.data).first()
@@ -1156,6 +1155,9 @@ def stampa_registro_iva(id):
     del form.partner
     del form.registrazione
     if form.submit.data and form.validate():
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('stampa_registro_iva', id=id))
         stampa.nome=form.nome.data
         stampa.data_decorrenza=form.data_decorrenza.data
         stampa.data_scadenza=form.data_scadenza.data
@@ -1188,6 +1190,9 @@ def stampa_partitario(id):
     del form.registrazione
     partners = Partner.query.order_by(Partner.nome).with_entities(Partner.nome).all()
     if form.submit.data and form.validate():
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('stampa_partitario', id=id))
         stampa.nome=form.nome.data
         stampa.data_decorrenza=form.data_decorrenza.data
         stampa.data_scadenza=form.data_scadenza.data
@@ -1213,6 +1218,9 @@ def stampa_libro_giornale(id):
     del form.partner
     del form.registrazione
     if form.submit.data and form.validate():
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('stampa_libro_giornale', id=id))
         stampa.nome=form.nome.data
         stampa.data_decorrenza=form.data_decorrenza.data
         stampa.data_scadenza=form.data_scadenza.data
@@ -1248,6 +1256,9 @@ def stampa_libro_mastro(id):
     partners = Partner.query.order_by(Partner.nome).with_entities(Partner.nome).all()
     conti = Conto.query.with_entities(Conto.nome).all()
     if form.submit.data and form.validate():
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('stampa_libro_mastro', id=id))
         stampa.nome=form.nome.data
         stampa.data_decorrenza=form.data_decorrenza.data
         stampa.data_scadenza=form.data_scadenza.data
@@ -1279,6 +1290,9 @@ def stampa_bilancio_contabile(id):
     del form.partner
     del form.registrazione
     if form.submit.data and form.validate():
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('stampa_bilancio_contabile', id=id))
         stampa.nome=form.nome.data
         stampa.data_decorrenza=form.data_decorrenza.data
         stampa.data_scadenza=form.data_scadenza.data
@@ -1294,12 +1308,12 @@ def stampa_bilancio_contabile(id):
     return render_template('stampa_bilancio_contabile.html', form=form, stampa=stampa, allegati=allegati)
 
 @app.route('/genera_stampa_liquidazione_iva/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_liquidazione_iva(id):
     return render_template('wait.html', id=id, link="genera_stampa_liquidazione_iva_")
 
 @app.route('/genera_stampa_liquidazione_iva_/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_liquidazione_iva_(id):
     stampa=Stampa.query.get(id)
     filename=os.path.join(here, 'stampa.pdf')
@@ -1316,12 +1330,12 @@ def genera_stampa_liquidazione_iva_(id):
     return redirect(url_for('stampa', id=id))
 
 @app.route('/genera_stampa_registro_iva/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_registro_iva(id):
     return render_template('wait.html', id=id, link="genera_stampa_registro_iva_")
 
 @app.route('/genera_stampa_registro_iva_/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_registro_iva_(id):
     stampa=Stampa.query.get(id)
     filename=os.path.join(here, 'stampa.pdf')
@@ -1340,12 +1354,12 @@ def genera_stampa_registro_iva_(id):
     return redirect(url_for('stampa', id=id))
 
 @app.route('/genera_stampa_partitario/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_partitario(id):
     return render_template('wait.html', id=id, link="genera_stampa_partitario_")
 
 @app.route('/genera_stampa_partitario_/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_partitario_(id):
     stampa=Stampa.query.get(id)
     filename=os.path.join(here, 'stampa.pdf')
@@ -1374,12 +1388,12 @@ def genera_stampa_partitario_(id):
     return redirect(url_for('stampa', id=id))
 
 @app.route('/genera_stampa_libro_mastro/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_libro_mastro(id):
     return render_template('wait.html', id=id, link="genera_stampa_libro_mastro_")
 
 @app.route('/genera_stampa_libro_mastro_/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_libro_mastro_(id):
     stampa=Stampa.query.get(id)
     dal=stampa.data_decorrenza
@@ -1402,12 +1416,12 @@ def genera_stampa_libro_mastro_(id):
     return redirect(url_for('stampa', id=id))
 
 @app.route('/genera_stampa_libro_giornale/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_libro_giornale(id):
     return render_template('wait.html', id=id, link="genera_stampa_libro_giornale_")
 
 @app.route('/genera_stampa_libro_giornale_/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_libro_giornale_(id):
     stampa=Stampa.query.get(id)
     filename=os.path.join(here, 'stampa.pdf')
@@ -1438,12 +1452,12 @@ def genera_stampa_libro_giornale_(id):
     return redirect(url_for('stampa', id=id))
 
 @app.route('/genera_stampa_bilancio_contabile/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_bilancio_contabile(id):
     return render_template('wait.html', id=id, link="genera_stampa_bilancio_contabile_")
 
 @app.route('/genera_stampa_bilancio_contabile_/<id>')
-@login_required
+@requires_roles('admin','user')
 def genera_stampa_bilancio_contabile_(id):
     stampa=Stampa.query.get(id)
     filename=os.path.join(here, 'stampa.pdf')
@@ -1801,7 +1815,7 @@ def Stampa_registri_portrait(partner,dal,al,registri,filename,page,year):
     return can.page
 
 @app.route('/stampa_registro/<id>')
-@login_required
+@requires_roles('admin','user')
 def stampa_registro(id):
     impostazioni=Impostazioni.query.get(1)
     registri=[Registro.query.get(id)]
@@ -1998,7 +2012,7 @@ def Stampa_libro_mastro(partner,dal,al,conti,filename):
     return can.page
 
 @app.route('/stampa_mastrino/<id>')
-@login_required
+@requires_roles('admin','user')
 def stampa_mastrino(id):
     impostazioni=Impostazioni.query.get(1)
     partner=None
@@ -2010,7 +2024,7 @@ def stampa_mastrino(id):
     return send_file(filename,as_attachment=True,download_name=conti[0].nome+".pdf")
 
 @app.route('/stampa_mastrino_filtrato/<id>')
-@login_required
+@requires_roles('admin','user')
 def stampa_mastrino_filtrato(id):
     impostazioni=Impostazioni.query.get(1)
     partner=current_user.partner
@@ -2459,6 +2473,9 @@ def iva(id):# visualizza o modifica la liquidazione IVA
     for v in voci:
         totale+=v.importo
     if registrazione.validazione_backref.first() == None:
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('index'))
         registrazione.importo=totale*registrazione.registro.segno
         db.session.commit()
         form = IVAForm()
@@ -2520,7 +2537,7 @@ def iva(id):# visualizza o modifica la liquidazione IVA
         return render_template('iva.html', registrazione=registrazione, partners=partners, voci=voci, totale=totale, movimenti=movimenti, dare=dare, avere=avere, riconciliazioni=riconciliazioni, Validazione=Validazione, allegati=allegati)
 
 @app.route('/voce_iva/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def voce_iva(id):#modifica la voce della liquidazione IVA
     conti = Conto.query.all()
     voce = Voce.query.get(id)
@@ -2541,7 +2558,7 @@ def voce_iva(id):#modifica la voce della liquidazione IVA
     return render_template('voce_iva.html', voce=voce, form=form, conti=conti)
 
 @app.route('/registra_iva/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def registra_iva(id):#registra la registrazione liquidazione IVA
     registrazione=Registrazione.query.get(id)
     begin=Impostazioni.query.get(1).starting_date
@@ -2553,7 +2570,7 @@ def registra_iva(id):#registra la registrazione liquidazione IVA
     return redirect(url_for('iva', id=id))
 
 @app.route('/aggiungi_riconciliazione_iva/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def aggiungi_riconciliazione_iva(id):#aggiunge riconciliazione IVA
     riconciliazione_id = request.args.get('riconciliazione_id')
     riconciliazione=Registrazione.query.get(riconciliazione_id)
@@ -2620,6 +2637,9 @@ def generico(id):#visualizza o modifica la registrazione generica
     avere=0
     validazione=registrazione.validazione_backref.first()
     if validazione == None:
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('index'))
         form = GenericoForm()
         upload_form = UploadForm()
         if upload_form.submit2.data and upload_form.validate():
@@ -2665,7 +2685,7 @@ def generico(id):#visualizza o modifica la registrazione generica
         return render_template('generico.html', registrazione=registrazione, movimenti=movimenti, dare=dare, avere=avere, riconciliazioni=riconciliazioni, registrazioni_generate=registrazioni_generate, allegati=allegati)
 
 @app.route('/voce_generico/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def voce_generico(id):#modifica la voce della registrazione generica
     partners = Partner.query.order_by(Partner.nome).with_entities(Partner.nome).all()
     conti = Conto.query.with_entities(Conto.nome).all()
@@ -2695,7 +2715,7 @@ def voce_generico(id):#modifica la voce della registrazione generica
     return render_template('voce_generico.html', voce=voce, form=form, conti=conti, imposte=imposte, partners=partners)
 
 @app.route('/registra_generico/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def registra_generico(id):#registra la registrazione generica
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
@@ -2790,6 +2810,9 @@ def cassa(id):#mostra la registrazione di cassa in visualizzazione o in editing
     avere=0
     validazione=registrazione.validazione_backref.first()
     if validazione == None:
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('index'))
         form = CassaForm()
         upload_form = UploadForm()
         if upload_form.submit2.data and upload_form.validate():
@@ -2846,7 +2869,7 @@ def cassa(id):#mostra la registrazione di cassa in visualizzazione o in editing
         return render_template('cassa.html', registrazione=registrazione, movimenti=movimenti, dare=dare, avere=avere, riconciliazioni=riconciliazioni, registrazioni_generate=registrazioni_generate, allegati=allegati)
 
 @app.route('/voce_cassa/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def voce_cassa(id):#edita la voce di cassa
     partners = Partner.query.order_by(Partner.nome).with_entities(Partner.nome).all()
     voce = Voce.query.get(id)
@@ -2876,7 +2899,7 @@ def voce_cassa(id):#edita la voce di cassa
     return render_template('voce_cassa.html', voce=voce, form=form, conti=conti, imposte=imposte, partners=partners)
 
 @app.route('/registra_cassa/<id>')
-@login_required
+@requires_roles('admin','user')
 def registra_cassa(id):#registra la registrazione tipo cassa e genera le registrazioni accessorie
     registrazione=Registrazione.query.get(id)
     if not validate(registrazione):
@@ -2967,6 +2990,9 @@ def ricevuta(id):#visualizza o modifica la ricevuta
     for v in voci:
         totale+=v.importo
     if registrazione.validazione_backref.first() == None:
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('index'))
         registrazione.importo=totale*registrazione.registro.segno
         db.session.commit()
         form = FatturaForm()
@@ -3008,7 +3034,7 @@ def ricevuta(id):#visualizza o modifica la ricevuta
         return render_template('ricevuta.html', registrazione=registrazione, voci=voci, totale=totale, movimenti=movimenti, dare=dare, avere=avere, riconciliazioni=riconciliazioni, Validazione=Validazione, allegati=allegati)
 
 @app.route('/voce_ricevuta/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def voce_ricevuta(id):#modifica la voce della ricevuta
     conti = Conto.query.all()
     voce = Voce.query.get(id)
@@ -3029,15 +3055,15 @@ def voce_ricevuta(id):#modifica la voce della ricevuta
     return render_template('voce_ricevuta.html', voce=voce, form=form, conti=conti)
 
 @app.route('/registra_ricevuta/<id>')
-@login_required#registra la ricevuta
-def registra_ricevuta(id):
+@requires_roles('admin','user')
+def registra_ricevuta(id):#registra la ricevuta
     registrazione=Registrazione.query.get(id)
     if registrazione.validazione_backref.first() == None:
         reg_ricevuta(registrazione)
     return redirect(url_for('ricevuta', id=id))
 
 @app.route('/aggiungi_ricevuta/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def aggiungi_ricevuta(id):#aggiunge una ricevuta
     registro_id = request.args.get('registro_id')
     registro=Registro.query.get(registro_id)
@@ -3090,6 +3116,9 @@ def fattura(id):#visualizza o edita la fattura
     totale_pagare=totale-tot_ritenuta
 
     if registrazione.validazione_backref.first() == None:
+        if current_user.ruolo!="admin" and current_user.ruolo!="user":
+            flash('Non hai i privilegi per eseguire questa operazione !')
+            return redirect(url_for('index'))
         registrazione.importo=totale*registrazione.registro.segno
         db.session.commit()
         form = FatturaForm()
@@ -3120,7 +3149,7 @@ def fattura(id):#visualizza o edita la fattura
         return render_template('fattura.html', registrazione=registrazione, voci=voci, voci_iva=voci_iva, voci_ritenuta=voci_ritenuta, tot_imponibile=tot_imponibile, tot_imposta=tot_imposta, totale=totale, tot_imponibile_rit=tot_imponibile_rit, tot_ritenuta=tot_ritenuta, totale_pagare=totale_pagare, movimenti=movimenti, dare=dare, avere=avere, riconciliazioni=riconciliazioni, Validazione=Validazione, registrazioni_generate=registrazioni_generate, allegati=allegati, registrazione_successiva=registrazione_successiva, registrazione_precedente=registrazione_precedente, domiciliatario=domiciliatario, causale=causale)
 
 @app.route('/cambia_conto/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def cambia_conto(id):#modifica il conto per la voce della fattura
     conti = Conto.query.all()
     voce = Voce.query.get(id)
@@ -3144,7 +3173,7 @@ def cambia_conto(id):#modifica il conto per la voce della fattura
     return render_template('cambia_conto.html', voce=voce, form=form, conti=conti)
 
 @app.route('/voce_fattura/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def voce_fattura(id):#edita la voce fattura
     conti = Conto.query.all()
     imposte = Imposta.query.order_by(Imposta.posizione).all()
@@ -3176,7 +3205,7 @@ def voce_fattura(id):#edita la voce fattura
     return render_template('voce_fattura.html', voce=voce, form=form, conti=conti, imposte=imposte, ritenute=ritenute)
 
 @app.route('/registra_fattura/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def registra_fattura(id):#registra la fattura e genera le registrazioni accessorie
     registrazione=Registrazione.query.get(id)
     impostazioni=Impostazioni.query.get(1)
@@ -3305,7 +3334,7 @@ def registra_fattura(id):#registra la fattura e genera le registrazioni accessor
     return redirect(url_for('fattura', id=id))
 
 @app.route('/edit_top_fattura/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def edit_top_fattura(id):#modifica la parte relativa al partner, date ecc
     registrazione=Registrazione.query.get(id)
     form = FatturaForm()
@@ -3338,7 +3367,7 @@ def edit_top_fattura(id):#modifica la parte relativa al partner, date ecc
     else: return redirect(url_for('fattura', id=id))
 
 @app.route('/edit_top_fattura1/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def edit_top_fattura1(id):#modifica la parte relativa al domiciliatario, condizioni di pagamento e causale
     registrazione=Registrazione.query.get(id)
     form = FatturaForm1()
@@ -3525,7 +3554,7 @@ def Stampa_fattura(fattura, filename):#genera il pdf della fattura
     can.save()
 
 @app.route('/edit_voce_iva/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def edit_voce_iva(id):#modifica la voce IVA. Serve quando a causa degli arrotondamenti nelle fatture acquisto l'IVA non torna
     voce_iva=Voce_iva.query.get(id)
     form = EditIVAForm()
@@ -3747,7 +3776,6 @@ def impostazioni():
 
 @app.route('/imposta_mastri')
 @login_required
-@requires_roles('admin','user')
 def imposta_mastri():
     mastri = Mastro.query.order_by(Mastro.codice).all()
     return render_template('imposta_mastri.html', mastri=mastri)
@@ -3761,14 +3789,13 @@ def log():
 
 @app.route('/imposta_mastro/<id>', methods=['GET', 'POST'])
 @login_required
-@requires_roles('admin','user')
 def imposta_mastro(id):
     mastro=Mastro.query.get(id)
     sottomastri=Sottomastro.query.filter_by(mastro=mastro).order_by(Sottomastro.codice).all()
     form = MastroForm()
     if form.validate_on_submit():
         if current_user.ruolo!="admin":
-            flash('Non hai i privilegi per esguire questa operazione !')
+            flash('Non hai i privilegi per eseguire questa operazione !')
             return redirect(url_for('imposta_mastro', id=id))
         mastro.nome=form.nome.data
         mastro.tipo=form.tipo.data
@@ -3784,7 +3811,6 @@ def imposta_mastro(id):
     return render_template('imposta_mastro.html', mastro=mastro, sottomastri=sottomastri, form=form)
 
 @app.route('/aggiungi_mastro')
-@login_required
 @requires_roles('admin')
 def aggiungi_mastro():
     mastro=Mastro(nome="Nuovo mastro")
@@ -3794,7 +3820,6 @@ def aggiungi_mastro():
     return redirect(url_for('imposta_mastro', id=mastro.id))
 
 @app.route('/rimuovi_mastro/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_mastro(id):
     mastro=Mastro.query.get(id)
@@ -3804,7 +3829,6 @@ def rimuovi_mastro(id):
 
 @app.route('/imposta_sottomastro/<id>', methods=['GET', 'POST'])
 @login_required
-@requires_roles('admin','user')
 def imposta_sottomastro(id):
     sottomastro=Sottomastro.query.get(id)
     conti=Conto.query.filter_by(sottomastro=sottomastro).order_by(Conto.codice).all()
@@ -3812,7 +3836,7 @@ def imposta_sottomastro(id):
     mastri = Mastro.query.all()
     if form.validate_on_submit():
         if current_user.ruolo!="admin":
-            flash('Non hai i privilegi per esguire questa operazione !')
+            flash('Non hai i privilegi per eseguire questa operazione !')
             return redirect(url_for('imposta_sottomastro', id=id))
         sottomastro.nome=form.nome.data
         sottomastro.mastro=Mastro.query.filter_by(nome=form.mastro.data).first()
@@ -3828,7 +3852,6 @@ def imposta_sottomastro(id):
     return render_template('imposta_sottomastro.html', sottomastro=sottomastro, mastri=mastri, conti=conti, form=form)
 
 @app.route('/aggiungi_sottomastro/<id>')
-@login_required
 @requires_roles('admin')
 def aggiungi_sottomastro(id):
     mastro=Mastro.query.get(id)
@@ -3839,7 +3862,6 @@ def aggiungi_sottomastro(id):
     return redirect(url_for('imposta_sottomastro', id=sottomastro.id))
 
 @app.route('/rimuovi_sottomastro/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_sottomastro(id):
     sottomastro=Sottomastro.query.get(id)
@@ -3849,7 +3871,6 @@ def rimuovi_sottomastro(id):
     return redirect(url_for('imposta_mastro', id=id))
 
 @app.route('/imposta_conto/<id>', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin','user')
 def imposta_conto(id):
     conto=Conto.query.get(id)
@@ -3871,7 +3892,6 @@ def imposta_conto(id):
     return render_template('imposta_conto.html', conto=conto, sottomastri=sottomastri, form=form)
 
 @app.route('/aggiungi_conto/<id>')
-@login_required
 @requires_roles('admin','user')
 def aggiungi_conto(id):
     sottomastro=Sottomastro.query.get(id)
@@ -3882,7 +3902,6 @@ def aggiungi_conto(id):
     return redirect(url_for('imposta_conto', id=conto.id))
 
 @app.route('/rimuovi_conto/<id>')
-@login_required
 @requires_roles('admin','user')
 def rimuovi_conto(id):
     conto=Conto.query.get(id)
@@ -3893,13 +3912,11 @@ def rimuovi_conto(id):
 
 @app.route('/imposta_registri')
 @login_required
-@requires_roles('admin')
 def imposta_registri():
     registri = Registro.query.order_by(Registro.posizione).all()
     return render_template('imposta_registri.html', registri=registri)
 
 @app.route('/imposta_registro/<id>', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def imposta_registro(id):
     registro=Registro.query.get(id)
@@ -3933,7 +3950,6 @@ def imposta_registro(id):
     return render_template('imposta_registro.html', registro=registro, conti=conti, form=form, tipi_documento=tipi_documento)
 
 @app.route('/aggiungi_registro')
-@login_required
 @requires_roles('admin')
 def aggiungi_registro():
     registro=Registro(nome="Nuovo registro")
@@ -3943,7 +3959,6 @@ def aggiungi_registro():
     return redirect(url_for('imposta_registro', id=registro.id))
 
 @app.route('/rimuovi_registro/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_registro(id):
     registro=Registro.query.get(id)
@@ -3958,7 +3973,6 @@ def imposta_imposte():
     return render_template('imposta_imposte.html', imposte=imposte)
 
 @app.route('/imposta_imposta/<id>', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def imposta_imposta(id):
     imposta=Imposta.query.get(id)
@@ -3991,7 +4005,6 @@ def imposta_imposta(id):
     return render_template('imposta_imposta.html', imposta=imposta, registri=registri, form=form)
 
 @app.route('/aggiungi_imposta')
-@login_required
 @requires_roles('admin')
 def aggiungi_imposta():
     imposta=Imposta(nome="Nuova imposta")
@@ -4000,7 +4013,6 @@ def aggiungi_imposta():
     return redirect(url_for('imposta_imposta', id=imposta.id))
 
 @app.route('/rimuovi_imposta/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_imposta(id):
     imposta=Imposta.query.get(id)
@@ -4015,7 +4027,6 @@ def imposta_ritenute():
     return render_template('imposta_ritenute.html', ritenute=ritenute)
 
 @app.route('/imposta_ritenuta/<id>', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def imposta_ritenuta(id):
     ritenuta=Ritenuta.query.get(id)
@@ -4039,7 +4050,6 @@ def imposta_ritenuta(id):
     return render_template('imposta_ritenuta.html', ritenuta=ritenuta, form=form, registri=registri, conti=conti)
 
 @app.route('/aggiungi_ritenuta')
-@login_required
 @requires_roles('admin')
 def aggiungi_ritenuta():
     ritenuta=Ritenuta(nome="Nuova ritenuta")
@@ -4048,7 +4058,6 @@ def aggiungi_ritenuta():
     return redirect(url_for('imposta_ritenuta', id=ritenuta.id))
 
 @app.route('/rimuovi_ritenuta/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_ritenuta(id):
     ritenuta=Ritenuta.query.get(id)
@@ -4058,13 +4067,11 @@ def rimuovi_ritenuta(id):
 
 @app.route('/imposta_registri_stampa')
 @login_required
-@requires_roles('admin')
 def imposta_registri_stampa():
     registri = Registro_stampa.query.order_by(Registro_stampa.posizione).all()
     return render_template('imposta_registri_stampa.html', registri=registri)
 
 @app.route('/imposta_registro_stampa/<id>', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def imposta_registro_stampa(id):
     registro=Registro_stampa.query.get(id)
@@ -4088,7 +4095,6 @@ def imposta_registro_stampa(id):
     return render_template('imposta_registro_stampa.html', registro_stampa=registro, form=form, registri=registri, filtro_registro=filtro_registro)
 
 @app.route('/aggiungi_registro_stampa')
-@login_required
 @requires_roles('admin')
 def aggiungi_registro_stampa():
     registro=Registro_stampa(nome="Nuovo registro stampa")
@@ -4098,7 +4104,6 @@ def aggiungi_registro_stampa():
     return redirect(url_for('imposta_registro_stampa', id=registro.id))
 
 @app.route('/rimuovi_registro_stampa/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_registro_stampa(id):
     registro=Registro_stampa.query.get(id)
@@ -4106,9 +4111,7 @@ def rimuovi_registro_stampa(id):
     db.session.commit()
     return redirect(url_for('imposta_registri_stampa'))
 
-
 @app.route('/aggiungi_filtro_registro/<id>')
-@login_required
 @requires_roles('admin')
 def aggiungi_filtro_registro(id):
     registro_stampa=Registro_stampa.query.get(id)
@@ -4118,7 +4121,6 @@ def aggiungi_filtro_registro(id):
     return redirect(url_for('filtro_registro', id=filtro_registro.id))
 
 @app.route('/filtro_registro/<id>', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def filtro_registro(id):
     registri = Registro.query.all()
@@ -4135,7 +4137,6 @@ def filtro_registro(id):
     return render_template('filtro_registro.html', form=form, registri=registri)
 
 @app.route('/rimuovi_filtro_registro/<id>')
-@login_required
 @requires_roles('admin')
 def rimuovi_filtro_registro(id):
     filtro=Filtro_registro.query.get(id)
@@ -4145,7 +4146,6 @@ def rimuovi_filtro_registro(id):
     return redirect(url_for('imposta_registro_stampa', id=id))
 
 @app.route('/impostazioni_generali', methods=['GET', 'POST'])
-@login_required
 @requires_roles('admin')
 def impostazioni_generali():
     impostazioni=Impostazioni.query.get(1)
@@ -4222,7 +4222,6 @@ def impostazioni_generali():
 
 # C O M M O N #########################################################################
 @app.route('/testlock')
-@login_required
 @requires_roles('admin')
 def testlock():
     lock()
@@ -4620,7 +4619,7 @@ def validate_fattura(registrazione):#verifica che la fattura sia completa
 
 # S D I #########################################################################
 @app.route('/sdi_edit')
-@login_required
+@requires_roles('admin')
 def sdi_edit():#modifica la tabella sdi, solo per esperti 
     records = Sdi.query.order_by(Sdi.timestamp.desc()).all()
     return render_template('sdi_edit.html', records=records)
@@ -4632,7 +4631,7 @@ def sdi_in():#mostra i record sdi in ingresso
     return render_template('sdi_in.html', records=records)
 
 @app.route('/sdi/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin')
 def sdi(id):#visualizza il singolo record sdi
     record_sdi=Sdi.query.get(id)
     upload_form = UploadForm()
@@ -4644,7 +4643,7 @@ def sdi(id):#visualizza il singolo record sdi
     return render_template('sdi.html', record_sdi=record_sdi, upload_form=upload_form)
 
 @app.route('/rimuovi_allegato_sdi/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin')
 def rimuovi_allegato_sdi(id):#rimuove allegato da record sdi
     allegato=Allegato.query.get(id)
     form = ConfermaForm()
@@ -4658,7 +4657,7 @@ def rimuovi_allegato_sdi(id):#rimuove allegato da record sdi
     return render_template('conferma.html', testo="Rimozione dell'allegato "+testo, form=form)
 
 @app.route('/invia_fattura_sdi/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def invia_fattura_sdi(id):#invia la fattura elettronica all'SDI tramite PEC
     allegato=Allegato.query.get(id)
     form = ConfermaForm()
@@ -4669,7 +4668,7 @@ def invia_fattura_sdi(id):#invia la fattura elettronica all'SDI tramite PEC
     return render_template('conferma.html', testo="Inviare la fattura "+testo+" al sistema di interscambio ?", form=form)
 
 @app.route('/invia_fattura_sdi_/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin','user')
 def invia_fattura_sdi_(id):#invia la fattura elettronica all'SDI tramite PEC
     impostazioni=Impostazioni.query.get(1)
     app.config['MAIL_SERVER']=impostazioni.smtp_server
@@ -4689,7 +4688,7 @@ def invia_fattura_sdi_(id):#invia la fattura elettronica all'SDI tramite PEC
     return redirect(url_for('fattura', id=id))
 
 @app.route('/rimuovi_record_sdi/<id>', methods=['GET', 'POST'])
-@login_required
+@requires_roles('admin')
 def rimuovi_record_sdi(id):#rimuove un record sdi
     record_sdi=Sdi.query.get(id)
     form = ConfermaForm()
@@ -4702,12 +4701,12 @@ def rimuovi_record_sdi(id):#rimuove un record sdi
     return render_template('conferma.html', testo="Rimozione del record "+record_sdi.nome, form=form)
 
 @app.route('/importa_fattura_sdi/<id>')
-@login_required
+@requires_roles('admin','user')
 def importa_fattura_sdi(id):
     return render_template('wait.html', id=id, link="importa_fattura_sdi_")
 
 @app.route('/importa_fattura_sdi_/<id>')
-@login_required
+@requires_roles('admin','user')
 def importa_fattura_sdi_(id):#importa la fattura elettronica dal record sdi
     impostazioni=Impostazioni.query.get(1)
     record_sdi=Sdi.query.get(id)
@@ -4969,12 +4968,12 @@ def importa_fattura_sdi_(id):#importa la fattura elettronica dal record sdi
     #return redirect(url_for('registrazione', id=registrazione.id))
 
 @app.route('/check_sdi')
-@login_required
+@requires_roles('admin','user')
 def check_sdi():
     return render_template('wait.html', link="check_sdi_")
 
 @app.route('/check_sdi_')
-@login_required
+@requires_roles('admin','user')
 def check_sdi_():#scarica email da PEC e popola i records sdi
     impostazioni=Impostazioni.query.get(1)
     imap = imaplib.IMAP4_SSL(impostazioni.imap_server)
