@@ -4631,7 +4631,7 @@ def sdi_in():#mostra i record sdi in ingresso
     return render_template('sdi_in.html', records=records)
 
 @app.route('/sdi/<id>', methods=['GET', 'POST'])
-@requires_roles('admin')
+@requires_roles('admin','user')
 def sdi(id):#visualizza il singolo record sdi
     record_sdi=Sdi.query.get(id)
     upload_form = UploadForm()
@@ -4643,7 +4643,7 @@ def sdi(id):#visualizza il singolo record sdi
     return render_template('sdi.html', record_sdi=record_sdi, upload_form=upload_form)
 
 @app.route('/rimuovi_allegato_sdi/<id>', methods=['GET', 'POST'])
-@requires_roles('admin')
+@requires_roles('admin','user')
 def rimuovi_allegato_sdi(id):#rimuove allegato da record sdi
     allegato=Allegato.query.get(id)
     form = ConfermaForm()
